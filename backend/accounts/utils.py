@@ -55,7 +55,7 @@ def generate_secure_token(nbytes=48) -> str:
 
 def send_verification_email(user, token_str: str) -> bool:
     """Send an Apple-styled email verification link."""
-    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:6060').rstrip('/')
     verify_link = f"{frontend_url}/verify-email?token={token_str}"
 
     subject = "Verify your MovieFlow Account"
@@ -100,7 +100,7 @@ def send_verification_email(user, token_str: str) -> bool:
 
 def send_password_reset_email(user, token_str: str) -> bool:
     """Send an Apple-styled password reset link."""
-    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:6060').rstrip('/')
     reset_link = f"{frontend_url}/reset-password?token={token_str}"
 
     subject = "Reset your MovieFlow Password"

@@ -200,6 +200,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
 
+# Frontend URL — used for email verification links, password reset links, and invitation links
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:6060')
+
+# CSRF Trusted Origins — required for POST requests from the frontend
+_csrf_origins = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:6060,http://127.0.0.1:6060')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_origins.split(',') if origin.strip()]
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:6060', 'http://127.0.0.1:6060']
+
 # Email Configuration
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
@@ -251,10 +260,10 @@ SIMPLE_JWT = {
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = DEBUG and (os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('true', '1', 'yes'))
 CORS_ALLOW_CREDENTIALS = True
-cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000')
+cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:6060,http://127.0.0.1:6060')
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
 if DEBUG and not CORS_ALLOWED_ORIGINS:
-    CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
+    CORS_ALLOWED_ORIGINS = ['http://localhost:6060', 'http://127.0.0.1:6060']
 
 # Security Headers & Cookie Protection (Phase 22)
 SECURE_BROWSER_XSS_FILTER = True

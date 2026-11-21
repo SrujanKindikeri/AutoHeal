@@ -139,7 +139,7 @@ function VerifyEmailContent() {
               href={loginHref}
               className="w-full py-3 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 transition-all"
             >
-              <span>Sign In</span>
+              <span>Continue to Login</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -167,7 +167,7 @@ function VerifyEmailContent() {
             href={loginHref}
             className="w-full py-3 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 transition-all"
           >
-            <span>Sign In</span>
+            <span>Continue to Login</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
