@@ -139,11 +139,18 @@ export default function RegisterPage() {
 
               <div className="pt-2 space-y-3">
                 <Link
-                  href="/login"
+                  href={`/verify-email?email=${encodeURIComponent(registeredUser.email)}`}
                   className="w-full py-3 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
                 >
-                  <span>Proceed to Sign In</span>
+                  <span>Verify Email Now</span>
                   <ArrowRight className="w-4 h-4" />
+                </Link>
+
+                <Link
+                  href="/login"
+                  className="w-full py-2.5 rounded-xl border border-white/[0.1] hover:border-white/20 text-white/70 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                >
+                  <span>Go to Sign In</span>
                 </Link>
 
                 <p className="text-[11px] text-white/40">
