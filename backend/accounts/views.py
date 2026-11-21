@@ -1,12 +1,16 @@
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.utils import timezone
 from django.db.models import Q
+from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from accounts.models import User, UserProfile, PasswordResetToken
+from friendships.models import UserBlock
 from accounts.serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -34,6 +38,8 @@ class RegisterView(APIView):
     Registers a new user, generates a unique MovieFlow ID, and sends verification email.
     """
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'auth_register'
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -72,7 +78,7 @@ class VerifyEmailView(APIView):
         success, message, user = verify_email_token(token)
 
         if not success:
-            log_audit_event(request, 'verify_email_failed', details={"token": token, "reason": message})
+            log_audit_event(request, 'verify_email_failed', details={"reason": message})
             return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
 
         log_audit_event(request, 'verify_email_success', user=user)
@@ -88,6 +94,8 @@ class ResendVerificationView(APIView):
     Issues a fresh verification token and dispatches email.
     """
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'auth_resend_verification'
 
     def post(self, request):
         serializer = ResendVerificationSerializer(data=request.data)
@@ -101,8 +109,15 @@ class ResendVerificationView(APIView):
         generic_msg = "If your account exists and is unverified, a new verification link has been sent."
 
         if user and not user.is_email_verified:
-            create_verification_token(user)
-            log_audit_event(request, 'resend_verification', user=user)
+            try:
+                create_verification_token(user)
+                log_audit_event(request, 'resend_verification', user=user)
+            except ValidationError:
+                # Cooldown active — return generic rate-limit message without revealing account existence
+                return Response(
+                    {"message": "Please wait before requesting another verification link."},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS
+                )
 
         return Response({"message": generic_msg}, status=status.HTTP_200_OK)
 
@@ -114,6 +129,8 @@ class LoginView(APIView):
     Enforces email verification requirement and issues JWT tokens.
     """
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'auth_login'
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -181,6 +198,7 @@ class RefreshTokenView(APIView):
     """
     POST /api/v1/auth/refresh/
     Refreshes access token from body or cookie.
+    Rotates and blacklists the previous refresh token when ROTATE_REFRESH_TOKENS is enabled.
     """
     permission_classes = [permissions.AllowAny]
 
@@ -194,7 +212,30 @@ class RefreshTokenView(APIView):
             data = {
                 "access": str(refresh.access_token),
             }
-            return Response(data, status=status.HTTP_200_OK)
+
+            simple_jwt_settings = getattr(settings, 'SIMPLE_JWT', {})
+            if simple_jwt_settings.get('ROTATE_REFRESH_TOKENS', True):
+                if simple_jwt_settings.get('BLACKLIST_AFTER_ROTATION', True):
+                    try:
+                        refresh.blacklist()
+                    except AttributeError:
+                        pass
+                refresh.set_jti()
+                refresh.set_exp()
+                refresh.set_iat()
+                data["refresh"] = str(refresh)
+
+            response = Response(data, status=status.HTTP_200_OK)
+            if "refresh" in data:
+                response.set_cookie(
+                    key='mf_refresh',
+                    value=data["refresh"],
+                    httponly=True,
+                    secure=not request.META.get('HTTP_HOST', '').startswith('localhost'),
+                    samesite='Lax',
+                    max_age=7 * 24 * 3600
+                )
+            return response
         except TokenError as e:
             return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -228,6 +269,8 @@ class ForgotPasswordView(APIView):
     Initiates password reset process without disclosing user existence.
     """
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'auth_password_reset'
 
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
@@ -354,7 +397,7 @@ class UserSearchView(APIView):
     """
     GET /api/v1/users/search/?q={query}
     Search users by username, MovieFlow ID, or full name.
-    Excludes emails for privacy.
+    Excludes emails for privacy and excludes blocked relationships.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -363,11 +406,20 @@ class UserSearchView(APIView):
         if len(q) < 2:
             return Response([], status=status.HTTP_200_OK)
 
+        blocked_records = UserBlock.objects.filter(
+            Q(blocker=request.user) | Q(blocked=request.user)
+        ).values_list('blocker_id', 'blocked_id')
+
+        excluded_ids = {request.user.id}
+        for b_id, blk_id in blocked_records:
+            excluded_ids.add(b_id)
+            excluded_ids.add(blk_id)
+
         users = User.objects.filter(
             Q(username__icontains=q) |
             Q(movieflow_id__iexact=q) |
             Q(full_name__icontains=q)
-        ).exclude(id=request.user.id).select_related('profile')[:20]
+        ).exclude(id__in=excluded_ids).select_related('profile')[:20]
 
         serializer = PublicUserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -377,6 +429,7 @@ class UserByMovieFlowIdView(APIView):
     """
     GET /api/v1/users/by-movieflow-id/{movieflow_id}/
     Retrieve public profile by MovieFlow ID.
+    Enforces social blocking privacy.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -385,6 +438,9 @@ class UserByMovieFlowIdView(APIView):
         try:
             target_user = User.objects.select_related('profile').get(movieflow_id__iexact=clean_id)
         except User.DoesNotExist:
+            return Response({"error": "User with this MovieFlow ID not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if UserBlock.is_blocked(request.user, target_user):
             return Response({"error": "User with this MovieFlow ID not found."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = PublicUserSerializer(target_user)

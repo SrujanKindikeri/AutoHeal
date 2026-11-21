@@ -5,6 +5,7 @@ Phase 1: Architecture, Environment, Channels, PostgreSQL & Redis.
 
 from pathlib import Path
 import os
+import sys
 from datetime import timedelta
 from dotenv import load_dotenv
 
@@ -22,6 +23,10 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
+from django.core.exceptions import ImproperlyConfigured
+if not DEBUG and not ('test' in sys.argv) and SECRET_KEY.startswith('django-insecure'):
+    raise ImproperlyConfigured("Insecure SECRET_KEY used in production. A strong unique key must be set via environment variable.")
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0,backend').split(',')
@@ -29,9 +34,15 @@ ALLOWED_HOSTS = [
 ]
 
 # Application definition
-INSTALLED_APPS = [
-    # Daphne must be listed before django.contrib.staticfiles for ASGI
-    'daphne',
+SKIP_DAPHNE = os.getenv('SKIP_DAPHNE', 'False').lower() in ('true', '1', 'yes') or any(
+    cmd in sys.argv for cmd in ['test', 'makemigrations', 'migrate', 'collectstatic', 'check']
+)
+
+INSTALLED_APPS = []
+if not SKIP_DAPHNE:
+    INSTALLED_APPS.append('daphne')
+
+INSTALLED_APPS += [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,6 +53,7 @@ INSTALLED_APPS = [
     # Third party packages
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'channels',
 
@@ -53,6 +65,10 @@ INSTALLED_APPS = [
     'entertainment.apps.EntertainmentConfig',
     'music.apps.MusicConfig',
     'library.apps.LibraryConfig',
+    'rooms.apps.RoomsConfig',
+    'playback.apps.PlaybackConfig',
+    'history.apps.HistoryConfig',
+    'administration.apps.AdministrationConfig',
 ]
 
 MIDDLEWARE = [
@@ -129,7 +145,8 @@ else:
         }
 
 # Channel Layers Configuration (Redis with InMemory fallback)
-USE_IN_MEMORY_CHANNELS = os.getenv('USE_IN_MEMORY_CHANNELS', 'False').lower() in ('true', '1', 'yes')
+TESTING = 'test' in sys.argv
+USE_IN_MEMORY_CHANNELS = (os.getenv('USE_IN_MEMORY_CHANNELS', 'False').lower() in ('true', '1', 'yes')) or TESTING
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
 if USE_IN_MEMORY_CHANNELS:
@@ -207,6 +224,19 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '120/minute',
+        'user': '300/minute',
+        'auth_login': '15/minute',
+        'auth_register': '10/minute',
+        'auth_password_reset': '5/minute',
+        'auth_resend_verification': '3/hour',
+        'file_upload': '20/minute',
+    },
 }
 
 # SimpleJWT Configuration
@@ -219,11 +249,28 @@ SIMPLE_JWT = {
 }
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG and (os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('true', '1', 'yes'))
 CORS_ALLOW_CREDENTIALS = True
-cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', '')
-if cors_origins:
-    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+if DEBUG and not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
+
+# Security Headers & Cookie Protection (Phase 22)
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1', 'yes')
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # TMDB
 TMDB_API_KEY = os.getenv('TMDB_API_KEY', '')
@@ -235,4 +282,25 @@ TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p'
 MUSICBRAINZ_USER_AGENT = 'MovieFlow/6.0 (movieflow@example.com)'
 MUSICBRAINZ_BASE_URL = 'https://musicbrainz.org/ws/2'
 COVER_ART_ARCHIVE_BASE_URL = 'https://coverartarchive.org'
+
+# Real-Time Voice Communication (Phase 18)
+LIVEKIT_URL = os.getenv('LIVEKIT_URL', 'wss://movieflow-livekit.internal')
+LIVEKIT_API_KEY = os.getenv('LIVEKIT_API_KEY', 'devkey')
+LIVEKIT_API_SECRET = os.getenv('LIVEKIT_API_SECRET', 'secret_key_movieflow_voice_2025_secure')
+VOICE_DEFAULT_PROVIDER = os.getenv('VOICE_DEFAULT_PROVIDER', 'livekit')
+
+# STUN / TURN ICE Configuration
+RTC_ICE_SERVERS = [
+    {'urls': ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302']},
+]
+TURN_SERVER_URL = os.getenv('TURN_SERVER_URL', '')
+TURN_USERNAME = os.getenv('TURN_USERNAME', '')
+TURN_CREDENTIAL = os.getenv('TURN_CREDENTIAL', '')
+if TURN_SERVER_URL:
+    RTC_ICE_SERVERS.append({
+        'urls': [TURN_SERVER_URL],
+        'username': TURN_USERNAME,
+        'credential': TURN_CREDENTIAL,
+    })
+
 

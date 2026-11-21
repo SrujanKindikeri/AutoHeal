@@ -1,6 +1,7 @@
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 from accounts.models import (
     User,
     EmailVerificationToken,
@@ -35,8 +36,17 @@ def log_audit_event(request, event_type: str, user=None, details=None):
     except Exception:
         pass
 
+RESEND_COOLDOWN_SECONDS = 60
+
 def create_verification_token(user, hours_valid=24) -> EmailVerificationToken:
     """Create an expiring email verification token and send the email."""
+    # Enforce cooldown: reject if a fresh unused token was created within the last 60 seconds
+    recent_cutoff = timezone.now() - timedelta(seconds=RESEND_COOLDOWN_SECONDS)
+    if EmailVerificationToken.objects.filter(
+        user=user, is_used=False, created_at__gte=recent_cutoff
+    ).exists():
+        raise ValidationError("Please wait before requesting another verification link.")
+
     # Invalidate previous unused verification tokens for this user
     EmailVerificationToken.objects.filter(user=user, is_used=False).update(is_used=True)
 

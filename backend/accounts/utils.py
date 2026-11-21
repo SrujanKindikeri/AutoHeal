@@ -72,10 +72,10 @@ def send_verification_email(user, token_str: str) -> bool:
             html_message=html_message,
             fail_silently=False
         )
-        logger.info(f"Verification email sent to {user.email}")
+        logger.info("Verification email sent to %s", user.email)
         return True
     except Exception as e:
-        logger.warning(f"Email sending failed or simulated: {e}")
+        logger.error("Verification email delivery failed for %s: %s", user.email, type(e).__name__)
         return False
 
 def send_password_reset_email(user, token_str: str) -> bool:
@@ -118,8 +118,8 @@ def send_password_reset_email(user, token_str: str) -> bool:
             html_message=html_message,
             fail_silently=False
         )
-        logger.info(f"Password reset email sent to {user.email}")
+        logger.info("Password reset email sent to %s", user.email)
         return True
     except Exception as e:
-        logger.warning(f"Email sending failed or simulated: {e}")
+        logger.error("Password reset email delivery failed for %s: %s", user.email, type(e).__name__)
         return False
