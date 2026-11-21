@@ -524,3 +524,97 @@ class AuthNavigationTests(TestCase):
         self.assertFalse(is_safe_internal_redirect('http://localhost/'))
         self.assertFalse(is_safe_internal_redirect(None))
 
+
+class RoomInvitationSecurityTests(TestCase):
+    """
+    Security tests for invitation ownership and revocation checks.
+    Covers Fix 2 (ownership) and Fix 4 (revocation) from the review blockers.
+    """
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()  # Reset DRF throttle counters between tests
+
+        self.client = APIClient()
+        self.login_url = '/api/v1/auth/login/'
+
+        # Create the inviter
+        self.inviter = User.objects.create_user(
+            email='inv_owner@movieflow.app',
+            username='inv_owner',
+            password='Password123!',
+            is_email_verified=True,
+        )
+        # Create the intended invitee
+        self.invitee = User.objects.create_user(
+            email='inv_itee@movieflow.app',
+            username='inv_itee',
+            password='Password123!',
+            is_email_verified=True,
+        )
+        # Create an unrelated verified user
+        self.other = User.objects.create_user(
+            email='other_user@movieflow.app',
+            username='other_user',
+            password='Password123!',
+            is_email_verified=True,
+        )
+
+        from rooms.models import RoomInvitation
+        self.RoomInvitation = RoomInvitation
+
+        # Invitation addressed to invitee by FK
+        self.inv_fk = RoomInvitation.objects.create(
+            token='sec-token-fk-accept',
+            room_name='Test Room FK',
+            inviter=self.inviter,
+            invitee=self.invitee,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+        # Separate token for reject test
+        self.inv_fk_reject = RoomInvitation.objects.create(
+            token='sec-token-fk-reject',
+            room_name='Test Room FK Reject',
+            inviter=self.inviter,
+            invitee=self.invitee,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+        # Revoked invitation
+        self.inv_revoked = RoomInvitation.objects.create(
+            token='sec-token-revoked',
+            room_name='Test Room Revoked',
+            inviter=self.inviter,
+            status=RoomInvitation.STATUS_REVOKED,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+
+    def _get_token(self, email, password):
+        res = self.client.post(self.login_url, {'identifier': email, 'password': password})
+        data = res.json()
+        self.assertIn('access', data, f"Login failed for {email}: HTTP {res.status_code} — {data}")
+        return data['access']
+
+    def test_non_owner_accept_returns_403(self):
+        """An authenticated verified user who is not the invitee cannot accept the invitation."""
+        token = self._get_token('other_user@movieflow.app', 'Password123!')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        res = self.client.post(f'/api/v1/invitations/{self.inv_fk.token}/accept/')
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(res.json().get('error'), 'Not your invitation.')
+
+    def test_non_owner_reject_returns_403(self):
+        """An authenticated verified user who is not the invitee cannot reject the invitation."""
+        token = self._get_token('other_user@movieflow.app', 'Password123!')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        res = self.client.post(f'/api/v1/invitations/{self.inv_fk_reject.token}/reject/')
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(res.json().get('error'), 'Not your invitation.')
+
+    def test_accept_revoked_invitation_returns_410(self):
+        """Accepting a revoked invitation returns HTTP 410."""
+        token = self._get_token('other_user@movieflow.app', 'Password123!')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        res = self.client.post(f'/api/v1/invitations/{self.inv_revoked.token}/accept/')
+        self.assertEqual(res.status_code, 410)
+        self.assertIn('revoked', res.json().get('error', '').lower())
+

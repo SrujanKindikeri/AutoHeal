@@ -124,7 +124,7 @@ Added `RoomInvitationData` interface, `getInvitationByToken`, `acceptInvitation`
 
 | Command | Result | Notes |
 |---------|--------|-------|
-| `python manage.py test accounts` (with `USE_SQLITE=True`) | **PASSED** | 27 tests, 0 failures, 0 errors |
+| `python manage.py test accounts rooms` (with `USE_SQLITE=True`) | **PASSED** | 30 tests, 0 failures, 0 errors (includes 3 new security tests from review fix) |
 | `npm run lint` | **PASSED** | 3 pre-existing warnings in unrelated files, 0 errors |
 | `npx tsc --noEmit` | **PASSED** | No type errors |
 | `docker compose config` | **PASSED** | Config valid |
@@ -137,3 +137,13 @@ Added `RoomInvitationData` interface, `getInvitationByToken`, `acceptInvitation`
 - The `playback`, `history`, and `administration` apps referenced in INSTALLED_APPS are stubbed (no models/views). They need full implementation in future phases.
 - Email delivery in development uses `console` backend (no SMTP credentials configured). Real verification emails will be sent once `EMAIL_HOST_PASSWORD` is set in `.env`.
 - The `mf_auth_present` middleware cookie is a lightweight signal; actual JWT validation happens on the backend for every API call. The middleware only protects Next.js page navigation.
+
+## Fix 5 — `globals.css` CSS Variable Scope Analysis (Confirmed)
+
+**Finding:** `globals.css` sets `:root` CSS variables (`--background`, `--foreground`, `--surface-primary`, etc.) to white theme values. The concern was that non-auth components reading these variables would break.
+
+**Investigation result:** No component in the worktree reads these CSS variables via `var()`. All non-auth components (Navbar, AppShell, MediaCard, etc.) use hardcoded Tailwind utility classes (`bg-[#08080a]`, `text-white`, etc.). The `layout.tsx` root body element itself uses a hardcoded dark class (`bg-[#08080a]`), not the CSS variable. Therefore the `:root` white variable change has **no visual effect** on non-auth pages.
+
+**Confirmed design decision:** The white CSS variables are consumed only by auth page components, which explicitly use them. The main application retains its dark theme through Tailwind hardcoded classes in `layout.tsx` and components. This is intentional and consistent — auth surfaces are white, main app is dark.
+
+**Action taken:** `:root` left as-is (white variables). No `.auth-page` scoping needed. This outcome is documented here as a confirmed intentional design decision.

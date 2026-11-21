@@ -26,7 +26,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localStorage.setItem("mf_access_token", access);
       localStorage.setItem("mf_refresh_token", refresh);
       localStorage.setItem("mf_user", JSON.stringify(user));
-      document.cookie = "mf_auth_present=1; path=/; SameSite=Lax";
+      // HttpOnly cannot be set from JS — this cookie is a navigation-layer signal only; backend JWT validation is independent
+      document.cookie = 'mf_auth_present=1; path=/; SameSite=Lax' + (typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '');
     }
     set({
       user,
@@ -77,7 +78,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (access && userStr) {
         const user = JSON.parse(userStr) as User;
-        document.cookie = "mf_auth_present=1; path=/; SameSite=Lax";
+        // HttpOnly cannot be set from JS — this cookie is a navigation-layer signal only; backend JWT validation is independent
+        document.cookie = 'mf_auth_present=1; path=/; SameSite=Lax' + (typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '');
         set({
           user,
           accessToken: access,

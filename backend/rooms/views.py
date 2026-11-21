@@ -62,20 +62,43 @@ class RoomInvitationAcceptView(APIView):
     def post(self, request, token):
         if not request.user.is_email_verified:
             return Response(
-                {"code": "EMAIL_VERIFICATION_REQUIRED"},
+                {"error": "EMAIL_VERIFICATION_REQUIRED"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         try:
             invitation = RoomInvitation.objects.get(token=token, status=RoomInvitation.STATUS_PENDING)
         except RoomInvitation.DoesNotExist:
+            # Also surface a revoked invitation so the caller gets 410, not 404
+            try:
+                revoked = RoomInvitation.objects.get(token=token, status=RoomInvitation.STATUS_REVOKED)
+                return Response({"error": "Invitation has been revoked."}, status=status.HTTP_410_GONE)
+            except RoomInvitation.DoesNotExist:
+                pass
             return Response(
                 {"error": "Invitation not found or no longer pending."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # Revocation check (belt-and-suspenders; status filter above already excludes revoked)
+        if invitation.status == RoomInvitation.STATUS_REVOKED:
+            return Response({"error": "Invitation has been revoked."}, status=status.HTTP_410_GONE)
+
+        # TODO: check room capacity once Room model is complete
+
         if invitation.is_expired():
             return Response({"error": "This invitation has expired."}, status=status.HTTP_410_GONE)
+
+        # Ownership check
+        if invitation.invitee is not None and invitation.invitee != request.user:
+            return Response({"error": "Not your invitation."}, status=status.HTTP_403_FORBIDDEN)
+        elif (
+            invitation.invitee is None
+            and invitation.invitee_email
+            and invitation.invitee_email != request.user.email
+        ):
+            return Response({"error": "Not your invitation."}, status=status.HTTP_403_FORBIDDEN)
+        # Open invitation: no specific invitee
 
         invitation.status = RoomInvitation.STATUS_ACCEPTED
         invitation.invitee = request.user
@@ -92,6 +115,12 @@ class RoomInvitationRejectView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, token):
+        if not request.user.is_email_verified:
+            return Response(
+                {"error": "EMAIL_VERIFICATION_REQUIRED"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         try:
             invitation = RoomInvitation.objects.get(token=token, status=RoomInvitation.STATUS_PENDING)
         except RoomInvitation.DoesNotExist:
@@ -99,6 +128,17 @@ class RoomInvitationRejectView(APIView):
                 {"error": "Invitation not found or no longer pending."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        # Ownership check
+        if invitation.invitee is not None and invitation.invitee != request.user:
+            return Response({"error": "Not your invitation."}, status=status.HTTP_403_FORBIDDEN)
+        elif (
+            invitation.invitee is None
+            and invitation.invitee_email
+            and invitation.invitee_email != request.user.email
+        ):
+            return Response({"error": "Not your invitation."}, status=status.HTTP_403_FORBIDDEN)
+        # Open invitation: no specific invitee
 
         invitation.status = RoomInvitation.STATUS_REJECTED
         invitation.invitee = request.user
