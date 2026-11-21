@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 'db_table': 'mf_friend_requests',
                 'ordering': ['-created_at'],
                 'indexes': [models.Index(fields=['recipient', 'status'], name='mf_friend_r_recipie_da78fe_idx'), models.Index(fields=['sender', 'status'], name='mf_friend_r_sender__4511c7_idx')],
-                'constraints': [models.UniqueConstraint(condition=models.Q(('status', 'pending')), fields=('sender', 'recipient'), name='unique_pending_request'), models.CheckConstraint(condition=models.Q(('sender', models.F('recipient')), _negated=True), name='prevent_self_request')],
+                'constraints': [models.UniqueConstraint(condition=models.Q(('status', 'pending')), fields=('sender', 'recipient'), name='unique_pending_request'), models.CheckConstraint(check=models.Q(('sender', models.F('recipient')), _negated=True), name='prevent_self_request')],
             },
         ),
         migrations.CreateModel(
@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 'db_table': 'mf_friendships',
                 'ordering': ['-created_at'],
                 'indexes': [models.Index(fields=['user1', 'user2'], name='mf_friendsh_user1_i_ec1835_idx'), models.Index(fields=['user2', 'user1'], name='mf_friendsh_user2_i_c45c07_idx')],
-                'constraints': [models.UniqueConstraint(fields=('user1', 'user2'), name='unique_canonical_friendship'), models.CheckConstraint(condition=models.Q(('user1', models.F('user2')), _negated=True), name='prevent_self_friendship')],
+                'constraints': [models.UniqueConstraint(fields=('user1', 'user2'), name='unique_canonical_friendship'), models.CheckConstraint(check=models.Q(('user1', models.F('user2')), _negated=True), name='prevent_self_friendship')],
             },
         ),
         migrations.CreateModel(
@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
             options={
                 'db_table': 'mf_user_blocks',
                 'ordering': ['-created_at'],
-                'constraints': [models.UniqueConstraint(fields=('blocker', 'blocked'), name='unique_user_block'), models.CheckConstraint(condition=models.Q(('blocker', models.F('blocked')), _negated=True), name='prevent_self_block')],
+                'constraints': [models.UniqueConstraint(fields=('blocker', 'blocked'), name='unique_user_block'), models.CheckConstraint(check=models.Q(('blocker', models.F('blocked')), _negated=True), name='prevent_self_block')],
             },
         ),
     ]
