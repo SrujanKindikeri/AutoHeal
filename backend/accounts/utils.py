@@ -6,6 +6,26 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+
+def is_safe_internal_redirect(url: str) -> bool:
+    """
+    Return True only if `url` is a safe internal redirect destination.
+
+    Rules (all must hold):
+    - Non-empty string
+    - Starts with exactly one `/` (not `//`)
+    - Does not contain `://`
+    """
+    if not url or not isinstance(url, str):
+        return False
+    if not url.startswith('/'):
+        return False
+    if url.startswith('//'):
+        return False
+    if '://' in url:
+        return False
+    return True
+
 MOVIEFLOW_ID_ALPHABET = string.ascii_uppercase + string.digits
 
 def generate_random_movieflow_code(length=8) -> str:

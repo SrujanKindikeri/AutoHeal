@@ -11,7 +11,7 @@ from accounts.models import (
     PasswordResetToken,
     AuditLog,
 )
-from accounts.utils import generate_movieflow_id
+from accounts.utils import generate_movieflow_id, is_safe_internal_redirect
 
 
 class AuthenticationAndIdentityTests(TestCase):
@@ -389,3 +389,138 @@ class AuthenticationAndIdentityTests(TestCase):
         self.assertEqual(res_id.json()["username"], "kate_winslet")
         # Ensure email is NEVER exposed in public serializer
         self.assertNotIn("email", res_id.json())
+
+
+class AuthNavigationTests(TestCase):
+    """
+    Phase 8 Test Suite — Authentication Navigation, Email Verification,
+    Invitation Guard, and Safe Redirect Validation.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.login_url = '/api/v1/auth/login/'
+        self.verify_email_url = '/api/v1/auth/verify-email/'
+        self.resend_verify_url = '/api/v1/auth/resend-verification/'
+        self.profile_me_url = '/api/v1/profile/me/'
+        self.invitation_url_tpl = '/api/v1/invitations/{}/'
+
+    # Journey A — authenticated verified user can reach a protected endpoint
+    def test_journey_a_authenticated_user_reaches_protected_endpoint(self):
+        user = User.objects.create_user(
+            email="journey_a@movieflow.app",
+            username="journey_a",
+            password="Password123!",
+            is_email_verified=True,
+        )
+        login_res = self.client.post(self.login_url, {
+            "identifier": "journey_a@movieflow.app",
+            "password": "Password123!",
+        })
+        self.assertEqual(login_res.status_code, 200)
+        access = login_res.json()["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+        res = self.client.get(self.profile_me_url)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["username"], "journey_a")
+
+    # Journey B — unverified user is blocked with ACCOUNT_UNVERIFIED code
+    def test_journey_b_unverified_user_blocked(self):
+        User.objects.create_user(
+            email="journey_b@movieflow.app",
+            username="journey_b",
+            password="Password123!",
+            is_email_verified=False,
+        )
+        res = self.client.post(self.login_url, {
+            "identifier": "journey_b@movieflow.app",
+            "password": "Password123!",
+        })
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(res.json().get("code"), "ACCOUNT_UNVERIFIED")
+
+    # Journey C (a) — invalid email verification token returns clear error
+    def test_journey_c_invalid_verification_token_returns_error(self):
+        res = self.client.post(self.verify_email_url, {"token": "not-a-real-token-00000000"})
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("error", res.json())
+
+    # Journey C (b) — expired token returns clear error
+    def test_journey_c_expired_verification_token_returns_error(self):
+        user = User.objects.create_user(
+            email="journey_c@movieflow.app",
+            username="journey_c",
+            password="Password123!",
+            is_email_verified=False,
+        )
+        from accounts.utils import generate_secure_token
+        token_str = generate_secure_token(48)
+        token_obj = EmailVerificationToken.objects.create(
+            user=user,
+            token=token_str,
+            expires_at=timezone.now() - timedelta(hours=25),
+            is_used=False,
+        )
+
+        res = self.client.post(self.verify_email_url, {"token": token_obj.token})
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("expired", res.json()["error"].lower())
+
+    # Journey C (c) — resend endpoint sends a new token
+    def test_journey_c_resend_sends_new_token(self):
+        user = User.objects.create_user(
+            email="journey_c2@movieflow.app",
+            username="journey_c2",
+            password="Password123!",
+            is_email_verified=False,
+        )
+        # Ensure no unused token exists (create_user doesn't create one)
+        EmailVerificationToken.objects.filter(user=user).delete()
+
+        res = self.client.post(self.resend_verify_url, {"email": "journey_c2@movieflow.app"})
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("message", res.json())
+        # A new fresh unused token was created
+        self.assertTrue(
+            EmailVerificationToken.objects.filter(user=user, is_used=False).exists()
+        )
+
+    # Journey D — unauthenticated request to invitation endpoint returns AUTH_REQUIRED
+    def test_journey_d_unauthenticated_invitation_returns_auth_required(self):
+        # Create an inviter user
+        inviter = User.objects.create_user(
+            email="inviter@movieflow.app",
+            username="inviter",
+            password="Password123!",
+            is_email_verified=True,
+        )
+        from rooms.models import RoomInvitation
+        invitation = RoomInvitation.objects.create(
+            token="test-token-journey-d-12345",
+            room_name="Test Room",
+            inviter=inviter,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+
+        # Clear auth (unauthenticated)
+        self.client.credentials()
+        res = self.client.get(self.invitation_url_tpl.format(invitation.token))
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(res.json().get("code"), "AUTH_REQUIRED")
+
+    # Safe redirect validation — is_safe_internal_redirect
+    def test_safe_redirect_accepts_valid_paths(self):
+        self.assertTrue(is_safe_internal_redirect('/rooms/123'))
+        self.assertTrue(is_safe_internal_redirect('/'))
+        self.assertTrue(is_safe_internal_redirect('/invitations/abc123'))
+        self.assertTrue(is_safe_internal_redirect('/profile'))
+
+    def test_safe_redirect_rejects_invalid_urls(self):
+        self.assertFalse(is_safe_internal_redirect('//evil.com'))
+        self.assertFalse(is_safe_internal_redirect('https://evil.com'))
+        self.assertFalse(is_safe_internal_redirect('javascript:alert(1)'))
+        self.assertFalse(is_safe_internal_redirect(''))
+        self.assertFalse(is_safe_internal_redirect('http://localhost/'))
+        self.assertFalse(is_safe_internal_redirect(None))
+

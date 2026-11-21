@@ -28,5 +28,6 @@ urlpatterns = [
 
     # Profile endpoints
     path('profile/me/', UserProfileMeView.as_view(), name='profile-me'),
+    path('users/search/', UserSearchView.as_view(), name='users-search'),
     path('users/by-movieflow-id/<str:movieflow_id>/', UserByMovieFlowIdView.as_view(), name='users-by-movieflow-id'),
 ]

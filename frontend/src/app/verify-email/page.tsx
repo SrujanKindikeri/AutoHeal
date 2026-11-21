@@ -16,6 +16,14 @@ import {
 
 const RESEND_COOLDOWN = 60;
 
+function isSafeRedirect(url: string): boolean {
+  if (!url || typeof url !== "string") return false;
+  if (!url.startsWith("/")) return false;
+  if (url.startsWith("//")) return false;
+  if (url.includes("://")) return false;
+  return true;
+}
+
 type VerifyState =
   | { kind: "idle" }
   | { kind: "loading" }
@@ -28,6 +36,7 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const tokenFromUrl = searchParams.get("token");
   const emailFromUrl = searchParams.get("email");
+  const nextParam = searchParams.get("next") ?? "";
 
   const [verifyState, setVerifyState] = useState<VerifyState>({ kind: "idle" });
   const [resendEmail, setResendEmail] = useState(emailFromUrl || "");
@@ -38,7 +47,6 @@ function VerifyEmailContent() {
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-verify when token is in the URL
   useEffect(() => {
     if (tokenFromUrl) {
       handleVerify(tokenFromUrl);
@@ -46,7 +54,6 @@ function VerifyEmailContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenFromUrl]);
 
-  // Clean up countdown interval on unmount
   useEffect(() => {
     return () => {
       if (cooldownRef.current) clearInterval(cooldownRef.current);
@@ -112,24 +119,25 @@ function VerifyEmailContent() {
     }
   };
 
-  // — Verified successfully —
+  const loginHref = isSafeRedirect(nextParam) ? `/login?next=${encodeURIComponent(nextParam)}` : "/login";
+
   if (verifyState.kind === "success") {
     return (
       <div className="w-full max-w-md">
-        <div className="p-8 rounded-3xl apple-glass-card border border-white/[0.1] space-y-6 shadow-2xl text-center">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
+        <div className="p-8 rounded-3xl apple-glass-card space-y-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center">
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Email Verified!</h1>
-            <p className="text-xs text-white/60">{verifyState.message}</p>
+            <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">Email Verified!</h1>
+            <p className="text-xs text-[#6E6E73]">{verifyState.message}</p>
           </div>
 
           <div className="space-y-3">
             <Link
-              href="/login"
-              className="w-full py-3 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
+              href={loginHref}
+              className="w-full py-3 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 transition-all"
             >
               <span>Sign In</span>
               <ArrowRight className="w-4 h-4" />
@@ -140,25 +148,24 @@ function VerifyEmailContent() {
     );
   }
 
-  // — Token already used (covers already-verified accounts revisiting the link) —
   if (verifyState.kind === "already_used") {
     return (
       <div className="w-full max-w-md">
-        <div className="p-8 rounded-3xl apple-glass-card border border-white/[0.1] space-y-6 shadow-2xl text-center">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
+        <div className="p-8 rounded-3xl apple-glass-card space-y-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center">
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Already Verified</h1>
-            <p className="text-xs text-white/60">
+            <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">Already Verified</h1>
+            <p className="text-xs text-[#6E6E73]">
               Your email is already verified. You can sign in now.
             </p>
           </div>
 
           <Link
-            href="/login"
-            className="w-full py-3 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
+            href={loginHref}
+            className="w-full py-3 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 transition-all"
           >
             <span>Sign In</span>
             <ArrowRight className="w-4 h-4" />
@@ -168,18 +175,17 @@ function VerifyEmailContent() {
     );
   }
 
-  // — Token expired — show resend form prominently —
   if (verifyState.kind === "expired") {
     return (
       <div className="w-full max-w-md">
-        <div className="p-8 rounded-3xl apple-glass-card border border-white/[0.1] space-y-6 shadow-2xl text-center">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mx-auto flex items-center justify-center">
+        <div className="p-8 rounded-3xl apple-glass-card space-y-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 mx-auto flex items-center justify-center">
             <Clock className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Link Expired</h1>
-            <p className="text-xs text-white/60">
+            <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">Link Expired</h1>
+            <p className="text-xs text-[#6E6E73]">
               This verification link has expired. Enter your email below to receive a new one.
             </p>
           </div>
@@ -188,8 +194,8 @@ function VerifyEmailContent() {
             <div
               className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 text-left ${
                 resendMsg.type === "success"
-                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                  : "bg-red-500/10 border-red-500/20 text-red-400"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-red-50 border-red-200 text-red-600"
               }`}
             >
               {resendMsg.type === "success" ? (
@@ -203,7 +209,7 @@ function VerifyEmailContent() {
 
           <form onSubmit={handleResend} className="space-y-3 text-left">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-medium text-white/70 uppercase tracking-wider">
+              <label className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wider">
                 Email Address
               </label>
               <input
@@ -211,7 +217,7 @@ function VerifyEmailContent() {
                 placeholder="Enter your email address"
                 value={resendEmail}
                 onChange={(e) => setResendEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F] text-xs focus:outline-none focus:border-[#0071E3] transition-colors"
                 required
               />
             </div>
@@ -219,7 +225,7 @@ function VerifyEmailContent() {
             <button
               type="submit"
               disabled={resendLoading || cooldown > 0}
-              className="w-full py-2.5 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all"
+              className="w-full py-2.5 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 disabled:opacity-50 transition-all"
             >
               {resendLoading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -238,20 +244,19 @@ function VerifyEmailContent() {
     );
   }
 
-  // — Invalid token —
   if (verifyState.kind === "invalid") {
     return (
       <div className="w-full max-w-md">
-        <div className="p-8 rounded-3xl apple-glass-card border border-white/[0.1] space-y-6 shadow-2xl text-center">
-          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 mx-auto flex items-center justify-center">
+        <div className="p-8 rounded-3xl apple-glass-card space-y-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 text-red-600 mx-auto flex items-center justify-center">
             <AlertCircle className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Invalid Link</h1>
-            <p className="text-xs text-white/60">
-              This verification link is not valid. It may have been copied incorrectly.
-              Request a new one below.
+            <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">Invalid Link</h1>
+            <p className="text-xs text-[#6E6E73]">
+              This verification link is not valid. It may have been copied incorrectly. Request a
+              new one below.
             </p>
           </div>
 
@@ -259,8 +264,8 @@ function VerifyEmailContent() {
             <div
               className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 text-left ${
                 resendMsg.type === "success"
-                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                  : "bg-red-500/10 border-red-500/20 text-red-400"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-red-50 border-red-200 text-red-600"
               }`}
             >
               {resendMsg.type === "success" ? (
@@ -274,7 +279,7 @@ function VerifyEmailContent() {
 
           <form onSubmit={handleResend} className="space-y-3 text-left">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-medium text-white/70 uppercase tracking-wider">
+              <label className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wider">
                 Email Address
               </label>
               <input
@@ -282,7 +287,7 @@ function VerifyEmailContent() {
                 placeholder="Enter your email address"
                 value={resendEmail}
                 onChange={(e) => setResendEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F] text-xs focus:outline-none focus:border-[#0071E3] transition-colors"
                 required
               />
             </div>
@@ -290,7 +295,7 @@ function VerifyEmailContent() {
             <button
               type="submit"
               disabled={resendLoading || cooldown > 0}
-              className="w-full py-2.5 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all"
+              className="w-full py-2.5 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 disabled:opacity-50 transition-all"
             >
               {resendLoading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -309,34 +314,33 @@ function VerifyEmailContent() {
     );
   }
 
-  // — Loading (auto-verify in progress) —
   if (verifyState.kind === "loading") {
     return (
       <div className="w-full max-w-md">
-        <div className="p-8 rounded-3xl apple-glass-card border border-white/[0.1] space-y-6 shadow-2xl text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#2997ff]/10 border border-[#2997ff]/20 text-[#2997ff] mx-auto flex items-center justify-center">
+        <div className="p-8 rounded-3xl apple-glass-card space-y-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 text-[#0071E3] mx-auto flex items-center justify-center">
             <RefreshCw className="w-8 h-8 animate-spin" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Verifying…</h1>
-            <p className="text-xs text-white/60">Confirming your email address, please wait.</p>
+            <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">Verifying…</h1>
+            <p className="text-xs text-[#6E6E73]">Confirming your email address, please wait.</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // — Idle: no token in URL, show manual entry + resend form —
+  // Idle state
   return (
     <div className="w-full max-w-md">
-      <div className="p-8 rounded-3xl apple-glass-card border border-white/[0.1] space-y-6 shadow-2xl text-center">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#2997ff] to-[#bf5af2] flex items-center justify-center mx-auto shadow-lg shadow-[#2997ff]/20">
+      <div className="p-8 rounded-3xl apple-glass-card space-y-6 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0071E3] to-[#bf5af2] flex items-center justify-center mx-auto shadow-lg shadow-blue-500/15">
           <Mail className="w-6 h-6 text-white" />
         </div>
 
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-bold text-white tracking-tight">Verify Your Email</h1>
-          <p className="text-xs text-white/60">
+          <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">Verify Your Email</h1>
+          <p className="text-xs text-[#6E6E73]">
             Confirm your email to access synchronized rooms and connect with friends.
           </p>
         </div>
@@ -345,8 +349,8 @@ function VerifyEmailContent() {
           <div
             className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 text-left ${
               resendMsg.type === "success"
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                : "bg-red-500/10 border-red-500/20 text-red-400"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                : "bg-red-50 border-red-200 text-red-600"
             }`}
           >
             {resendMsg.type === "success" ? (
@@ -358,22 +362,21 @@ function VerifyEmailContent() {
           </div>
         )}
 
-        {/* Resend Link Section */}
-        <div className="pt-2 border-t border-white/[0.06] text-left space-y-3">
-          <div className="text-xs font-semibold text-white">Didn&apos;t receive the email?</div>
+        <div className="pt-2 border-t border-[#D2D2D7] text-left space-y-3">
+          <div className="text-xs font-semibold text-[#1D1D1F]">Didn&apos;t receive the email?</div>
           <form onSubmit={handleResend} className="space-y-3">
             <input
               type="email"
               placeholder="Enter your email address"
               value={resendEmail}
               onChange={(e) => setResendEmail(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+              className="w-full px-3 py-2.5 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F] text-xs focus:outline-none focus:border-[#0071E3] transition-colors"
               required
             />
             <button
               type="submit"
               disabled={resendLoading || cooldown > 0}
-              className="w-full py-2.5 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all"
+              className="w-full py-2.5 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 disabled:opacity-50 transition-all"
             >
               {resendLoading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -392,10 +395,10 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#08080a] text-[#f5f5f7]">
+    <div className="min-h-screen flex flex-col bg-white text-[#1D1D1F]">
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-6 py-12">
-        <Suspense fallback={<div className="text-xs text-white/50">Loading verification...</div>}>
+        <Suspense fallback={<div className="text-xs text-[#6E6E73]">Loading verification…</div>}>
           <VerifyEmailContent />
         </Suspense>
       </main>

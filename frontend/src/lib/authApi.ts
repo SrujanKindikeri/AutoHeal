@@ -170,3 +170,35 @@ export async function searchUsers(query: string): Promise<PublicUser[]> {
 export async function getUserByMovieFlowId(movieflowId: string): Promise<PublicUser> {
   return apiRequest<PublicUser>(`/api/v1/users/by-movieflow-id/${encodeURIComponent(movieflowId)}/`);
 }
+
+// Room Invitation API
+export interface RoomInvitationData {
+  id: string;
+  token: string;
+  room_name: string;
+  inviter: {
+    id: string;
+    username: string;
+    full_name: string;
+    movieflow_id: string;
+  };
+  status: "pending" | "accepted" | "rejected" | "expired" | "revoked";
+  expires_at: string;
+  is_expired: boolean;
+}
+
+export async function getInvitationByToken(token: string): Promise<RoomInvitationData> {
+  return apiRequest<RoomInvitationData>(`/api/v1/invitations/${encodeURIComponent(token)}/`);
+}
+
+export async function acceptInvitation(token: string): Promise<{ message: string }> {
+  return apiRequest(`/api/v1/invitations/${encodeURIComponent(token)}/accept/`, {
+    method: "POST",
+  });
+}
+
+export async function rejectInvitation(token: string): Promise<{ message: string }> {
+  return apiRequest(`/api/v1/invitations/${encodeURIComponent(token)}/reject/`, {
+    method: "POST",
+  });
+}

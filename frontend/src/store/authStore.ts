@@ -26,6 +26,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localStorage.setItem("mf_access_token", access);
       localStorage.setItem("mf_refresh_token", refresh);
       localStorage.setItem("mf_user", JSON.stringify(user));
+      document.cookie = "mf_auth_present=1; path=/; SameSite=Lax";
     }
     set({
       user,
@@ -55,6 +56,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localStorage.removeItem("mf_access_token");
       localStorage.removeItem("mf_refresh_token");
       localStorage.removeItem("mf_user");
+      document.cookie = "mf_auth_present=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
     set({
       user: null,
@@ -75,6 +77,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (access && userStr) {
         const user = JSON.parse(userStr) as User;
+        document.cookie = "mf_auth_present=1; path=/; SameSite=Lax";
         set({
           user,
           accessToken: access,
