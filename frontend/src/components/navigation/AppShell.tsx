@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { getIncomingRequests, getNotifications, markAllNotificationsRead } from "@/lib/socialApi";
 import { NotificationItem, FriendRequest } from "@/types/social";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { MobileNavigation } from "./MobileNavigation";
 import { AppHeader } from "./AppHeader";
-import { ToastProvider } from "@/components/ui/Toast";
 import { Modal } from "@/components/ui/Modal";
 import { fetchBackendHealth, SystemHealthResponse } from "@/lib/api";
 import { Activity, Server, Database, Radio, CheckCircle2, AlertCircle } from "lucide-react";
@@ -30,7 +29,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   }, [initAuth]);
 
   // Load social counters
-  const fetchSocialCounts = async () => {
+  const fetchSocialCounts = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       const [notifs, incoming] = await Promise.all([
@@ -43,7 +42,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     } catch {
       // Ignore
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -51,7 +50,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       const interval = setInterval(fetchSocialCounts, 20000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchSocialCounts]);
 
   const handleMarkAllRead = async () => {
     try {
