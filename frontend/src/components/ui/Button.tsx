@@ -9,6 +9,7 @@ export type ButtonVariant =
   | "glass"
   | "subtle"
   | "danger"
+  | "destructive"
   | "ghost";
 
 export type ButtonSize = "sm" | "md" | "lg";
@@ -26,12 +27,14 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-accent-blue hover:bg-accent-blue-hover text-white shadow-lg shadow-blue-500/20 border border-transparent",
   secondary:
-    "bg-surface-elevated hover:bg-surface-elevated/80 text-content-primary border border-border-strong",
+    "bg-surface-primary hover:bg-surface-elevated text-content-primary border border-border-default",
   glass:
     "apple-button text-content-primary backdrop-blur-md shadow-glass",
   subtle:
     "bg-black/[0.04] hover:bg-black/[0.08] text-content-secondary hover:text-content-primary border border-border-subtle",
   danger:
+    "bg-accent-coral hover:bg-accent-coral-hover text-white shadow-lg shadow-red-500/20 border border-transparent",
+  destructive:
     "bg-accent-coral hover:bg-accent-coral-hover text-white shadow-lg shadow-red-500/20 border border-transparent",
   ghost:
     "bg-transparent hover:bg-black/[0.06] text-content-secondary hover:text-content-primary border border-transparent",

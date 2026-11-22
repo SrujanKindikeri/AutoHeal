@@ -62,7 +62,7 @@ export const Avatar: React.FC<AvatarProps> = ({
 
       {status && (
         <span
-          className={`absolute bottom-0 right-0 ${badge} rounded-full ring-2 ring-surface-background ${
+          className={`absolute bottom-0 right-0 ${badge} rounded-full ring-2 ring-white ${
             status === "online"
               ? "bg-accent-emerald"
               : status === "busy"

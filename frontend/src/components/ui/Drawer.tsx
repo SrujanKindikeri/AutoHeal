@@ -62,7 +62,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       {/* Surface */}
       <div
         ref={drawerRef}
-        className={`fixed ${positionStyles[side]} apple-glass-elevated border-border-strong p-6 z-10 flex flex-col justify-between shadow-glass-elevated overflow-y-auto ${className}`}
+        className={`fixed ${positionStyles[side]} apple-glass-elevated border border-border-strong p-6 z-10 flex flex-col justify-between shadow-glass-elevated overflow-y-auto ${className}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
