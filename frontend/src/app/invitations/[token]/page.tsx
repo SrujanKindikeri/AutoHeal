@@ -99,10 +99,10 @@ export default function InvitationTokenPage() {
       case "loading":
         return (
           <div className="p-8 rounded-3xl apple-glass-card text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#F5F5F7] border border-[#D2D2D7] text-[#0071E3] mx-auto flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-surface-primary border border-border-glass text-accent-blue mx-auto flex items-center justify-center">
               <Film className="w-6 h-6 animate-pulse" />
             </div>
-            <p className="text-xs text-[#6E6E73]">Loading invitation…</p>
+            <p className="text-xs text-content-muted">Loading invitation…</p>
           </div>
         );
 
@@ -113,16 +113,16 @@ export default function InvitationTokenPage() {
               <Mail className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+              <h1 className="text-2xl font-bold text-content-primary tracking-tight">
                 Email Verification Required
               </h1>
-              <p className="text-xs text-[#6E6E73]">
+              <p className="text-xs text-content-secondary">
                 You need to verify your email address before accepting or rejecting invitations.
               </p>
             </div>
             <Link
               href="/verify-email"
-              className="w-full py-3 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 transition-all"
+              className="w-full py-3 rounded-xl bg-accent-blue hover:bg-accent-blue-hover text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-accent-blue/15 transition-all"
             >
               <span>Verify Email</span>
               <ArrowRight className="w-4 h-4" />
@@ -133,18 +133,18 @@ export default function InvitationTokenPage() {
       case "error":
         return (
           <div className="p-8 rounded-3xl apple-glass-card text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 text-red-600 mx-auto flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 text-accent-coral mx-auto flex items-center justify-center">
               <AlertCircle className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+              <h1 className="text-2xl font-bold text-content-primary tracking-tight">
                 Invitation Not Found
               </h1>
-              <p className="text-xs text-[#6E6E73]">{state.message}</p>
+              <p className="text-xs text-content-secondary">{state.message}</p>
             </div>
             <Link
               href="/"
-              className="w-full py-3 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F] text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+              className="w-full py-3 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs font-semibold flex items-center justify-center gap-2 transition-all hover:bg-surface-elevated"
             >
               <span>Go to Home</span>
             </Link>
@@ -154,20 +154,20 @@ export default function InvitationTokenPage() {
       case "accepted":
         return (
           <div className="p-8 rounded-3xl apple-glass-card text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-accent-emerald mx-auto flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+              <h1 className="text-2xl font-bold text-content-primary tracking-tight">
                 Invitation Accepted!
               </h1>
-              <p className="text-xs text-[#6E6E73]">
+              <p className="text-xs text-content-secondary">
                 You have joined the room. Enjoy watching together.
               </p>
             </div>
             <Link
               href="/"
-              className="w-full py-3 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 transition-all"
+              className="w-full py-3 rounded-xl bg-accent-blue hover:bg-accent-blue-hover text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-accent-blue/15 transition-all"
             >
               <span>Go to Home</span>
               <ArrowRight className="w-4 h-4" />
@@ -178,20 +178,20 @@ export default function InvitationTokenPage() {
       case "rejected":
         return (
           <div className="p-8 rounded-3xl apple-glass-card text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-[#F5F5F7] border border-[#D2D2D7] text-[#6E6E73] mx-auto flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-surface-primary border border-border-glass text-content-muted mx-auto flex items-center justify-center">
               <XCircle className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+              <h1 className="text-2xl font-bold text-content-primary tracking-tight">
                 Invitation Declined
               </h1>
-              <p className="text-xs text-[#6E6E73]">
+              <p className="text-xs text-content-secondary">
                 You have declined this invitation.
               </p>
             </div>
             <Link
               href="/"
-              className="w-full py-3 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F] text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+              className="w-full py-3 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs font-semibold flex items-center justify-center gap-2 transition-all hover:bg-surface-elevated"
             >
               <span>Go to Home</span>
             </Link>
@@ -213,41 +213,41 @@ export default function InvitationTokenPage() {
         return (
           <div className="p-8 rounded-3xl apple-glass-card space-y-6">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0071E3] to-[#bf5af2] flex items-center justify-center mx-auto shadow-lg shadow-blue-500/15 mb-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-accent-blue to-accent-purple flex items-center justify-center mx-auto shadow-lg shadow-accent-blue/15 mb-3">
                 <Film className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+              <h1 className="text-2xl font-bold text-content-primary tracking-tight">
                 Room Invitation
               </h1>
-              <p className="text-xs text-[#6E6E73]">
+              <p className="text-xs text-content-secondary">
                 You have been invited to join a movie room.
               </p>
             </div>
 
             <div className="space-y-3">
-              <div className="p-4 rounded-2xl bg-[#F5F5F7] border border-[#D2D2D7] space-y-2">
-                <div className="flex items-center gap-2 text-xs text-[#6E6E73]">
+              <div className="p-4 rounded-2xl bg-surface-primary border border-border-glass space-y-2">
+                <div className="flex items-center gap-2 text-xs text-content-secondary">
                   <Film className="w-3.5 h-3.5" />
-                  <span className="font-medium text-[#1D1D1F]">{inv.room_name}</span>
+                  <span className="font-medium text-content-primary">{inv.room_name}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#6E6E73]">
+                <div className="flex items-center gap-2 text-xs text-content-secondary">
                   <User className="w-3.5 h-3.5" />
                   <span>
                     Invited by{" "}
-                    <span className="font-medium text-[#1D1D1F]">
+                    <span className="font-medium text-content-primary">
                       {inv.inviter.full_name || inv.inviter.username}
                     </span>
                     {" "}
-                    <span className="font-mono text-[#0071E3]">
+                    <span className="font-mono text-accent-blue">
                       ({inv.inviter.movieflow_id})
                     </span>
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#6E6E73]">
+                <div className="flex items-center gap-2 text-xs text-content-secondary">
                   <Clock className="w-3.5 h-3.5" />
                   <span>
                     {isExpired ? (
-                      <span className="text-red-600">Expired {expiresAt}</span>
+                      <span className="text-accent-coral">Expired {expiresAt}</span>
                     ) : (
                       <>Expires {expiresAt}</>
                     )}
@@ -260,11 +260,11 @@ export default function InvitationTokenPage() {
                 <div
                   className={`p-3 rounded-xl border text-xs text-center font-medium ${
                     isExpired || inv.status === "expired"
-                      ? "bg-red-50 border-red-200 text-red-600"
+                      ? "bg-red-50 border-red-200 text-accent-coral"
                       : inv.status === "accepted"
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                      ? "bg-emerald-50 border-emerald-200 text-accent-emerald"
                       : inv.status === "rejected"
-                      ? "bg-[#F5F5F7] border-[#D2D2D7] text-[#6E6E73]"
+                      ? "bg-surface-primary border-border-glass text-content-secondary"
                       : "bg-amber-50 border-amber-200 text-amber-700"
                   }`}
                 >
@@ -273,7 +273,7 @@ export default function InvitationTokenPage() {
               )}
 
               {actionError && (
-                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs flex items-start gap-2.5">
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-accent-coral text-xs flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{actionError}</span>
                 </div>
@@ -285,7 +285,7 @@ export default function InvitationTokenPage() {
                 <button
                   onClick={handleReject}
                   disabled={actionLoading}
-                  className="py-3 rounded-xl border border-[#D2D2D7] hover:border-red-300 text-[#1D1D1F] hover:text-red-600 text-xs font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                  className="py-3 rounded-xl border border-border-glass hover:border-accent-coral/40 text-content-primary hover:text-accent-coral text-xs font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50 bg-surface-primary hover:bg-accent-coral/5"
                 >
                   <XCircle className="w-4 h-4" />
                   <span>Decline</span>
@@ -293,7 +293,7 @@ export default function InvitationTokenPage() {
                 <button
                   onClick={handleAccept}
                   disabled={actionLoading}
-                  className="py-3 rounded-xl bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15 transition-all disabled:opacity-50"
+                  className="py-3 rounded-xl bg-accent-blue hover:bg-accent-blue-hover text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-accent-blue/15 transition-all disabled:opacity-50"
                 >
                   {actionLoading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
