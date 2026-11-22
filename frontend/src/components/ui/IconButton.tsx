@@ -25,8 +25,8 @@ const variantStyles: Record<IconButtonVariant, string> = {
 };
 
 const sizeStyles: Record<IconButtonSize, string> = {
-  sm: "w-8 h-8 rounded-xl",
-  md: "w-10 h-10 rounded-2xl",
+  sm: "w-8 h-8 min-w-[44px] min-h-[44px] rounded-xl",
+  md: "w-10 h-10 min-w-[44px] min-h-[44px] rounded-2xl",
   lg: "w-12 h-12 rounded-2xl",
 };
 

@@ -53,12 +53,12 @@ export const MediaRow: React.FC<MediaRowProps> = ({
       </div>
 
       {/* Scroll container wrapper */}
-      <div className="relative group/row">
+      <div className="relative group/row overflow-x-hidden">
         {/* Left arrow */}
         <button
           onClick={() => scroll("left")}
           aria-label="Scroll left"
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-surface-elevated border border-border-strong text-content-secondary hover:text-content-primary hover:bg-surface-glass shadow-glass opacity-0 group-hover/row:opacity-100 transition-all duration-200 disabled:opacity-0"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-surface-elevated border border-border-strong text-content-secondary hover:text-content-primary hover:bg-surface-glass shadow-glass opacity-0 group-hover/row:opacity-100 transition-all duration-200 disabled:opacity-0"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -91,7 +91,7 @@ export const MediaRow: React.FC<MediaRowProps> = ({
         <button
           onClick={() => scroll("right")}
           aria-label="Scroll right"
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-surface-elevated border border-border-strong text-content-secondary hover:text-content-primary hover:bg-surface-glass shadow-glass opacity-0 group-hover/row:opacity-100 transition-all duration-200"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-surface-elevated border border-border-strong text-content-secondary hover:text-content-primary hover:bg-surface-glass shadow-glass opacity-0 group-hover/row:opacity-100 transition-all duration-200"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

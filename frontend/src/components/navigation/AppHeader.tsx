@@ -120,7 +120,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             type="button"
             onClick={onOpenDiagnostics}
             title="System & Network Status"
-            className="p-2 rounded-xl text-content-muted hover:text-content-primary hover:bg-black/[0.04] transition hidden sm:inline-flex"
+            className="p-2 min-h-[44px] min-w-[44px] rounded-xl text-content-muted hover:text-content-primary hover:bg-black/[0.04] transition hidden sm:inline-flex"
           >
             <Activity className="w-4 h-4 text-accent-blue" />
           </button>
@@ -131,7 +131,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="relative">
             <button
               onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-              className="relative p-2.5 rounded-xl text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
+              className="relative p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />

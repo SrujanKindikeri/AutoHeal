@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export type PopoverAlign = "start" | "center" | "end";
 export type PopoverSide = "top" | "bottom" | "left" | "right";
@@ -92,14 +93,20 @@ export const Popover: React.FC<PopoverProps> = ({
         {trigger}
       </div>
 
-      {isOpen && (
-        <div
-          role="dialog"
-          className={`absolute ${sideClass[side]} ${alignClass[align]} z-50 min-w-[14rem] rounded-2xl bg-white border border-border-subtle shadow-glass-elevated p-3 animate-scale-in ${contentClassName}`}
-        >
-          {children}
-        </div>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            role="dialog"
+            className={`absolute ${sideClass[side]} ${alignClass[align]} z-50 min-w-[14rem] rounded-2xl bg-white border border-border-subtle shadow-glass-elevated p-3 ${contentClassName}`}
+            initial={{ opacity: 0, scale: 0.94, y: side === "bottom" ? 8 : side === "top" ? -8 : 0 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: side === "bottom" ? 8 : side === "top" ? -8 : 0 }}
+            transition={{ type: "spring", stiffness: 420, damping: 32 }}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

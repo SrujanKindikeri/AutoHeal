@@ -97,7 +97,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-200 ${
+              className={`relative flex flex-col items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-2xl transition-all duration-200 ${
                 isActive ? "text-accent-blue" : "text-content-muted hover:text-content-primary"
               }`}
             >
@@ -119,7 +119,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         {/* More Trigger */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className={`relative flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-200 ${
+          className={`relative flex flex-col items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-2xl transition-all duration-200 ${
             drawerOpen ? "text-accent-blue" : "text-content-muted hover:text-content-primary"
           }`}
         >

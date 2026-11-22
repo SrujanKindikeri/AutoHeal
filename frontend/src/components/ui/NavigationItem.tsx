@@ -27,7 +27,7 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
       href={href}
       onClick={onClick}
       aria-current={isActive ? "page" : undefined}
-      className={`group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-body-sm font-semibold transition-all duration-200 select-none ${
+      className={`group flex items-center justify-between px-3.5 py-2.5 min-h-[44px] rounded-2xl text-body-sm font-semibold transition-all duration-200 select-none ${
         isActive
           ? "bg-accent-blue text-white shadow-md shadow-blue-500/20"
           : "text-content-secondary hover:text-content-primary hover:bg-black/[0.04]"
