@@ -264,7 +264,7 @@ export default function TrackDetailPage() {
                     className={`w-full text-left px-4 py-3 rounded-xl text-body-sm font-medium border transition ${
                       addSuccess === pl.id
                         ? "bg-accent-emerald/20 border-accent-emerald/30 text-accent-emerald"
-                        : "bg-surface-primary border-border-glass text-content-primary hover:bg-surface-glass hover:border-white/20"
+                        : "bg-surface-primary border-border-glass text-content-primary hover:bg-surface-glass hover:border-border-strong"
                     } disabled:opacity-50`}
                   >
                     {addSuccess === pl.id ? "Added!" : pl.name}

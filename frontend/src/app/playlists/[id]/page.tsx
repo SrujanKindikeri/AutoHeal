@@ -269,7 +269,7 @@ export default function PlaylistDetailPage() {
     return (
       <AppShell>
         <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-          <p className="text-red-400">{error ?? "Playlist not found."}</p>
+          <p className="text-accent-coral">{error ?? "Playlist not found."}</p>
           <Link href="/playlists">
             <Button variant="glass">← Back to playlists</Button>
           </Link>
@@ -301,7 +301,7 @@ export default function PlaylistDetailPage() {
         {/* Delete confirmation */}
         {showDeleteConfirm && (
           <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-4">
-            <p className="text-sm text-red-300">Delete &ldquo;{playlist.name}&rdquo;? This cannot be undone.</p>
+            <p className="text-sm text-accent-coral">Delete &ldquo;{playlist.name}&rdquo;? This cannot be undone.</p>
             <div className="flex gap-2 shrink-0">
               <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
               <Button size="sm" variant="glass" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>

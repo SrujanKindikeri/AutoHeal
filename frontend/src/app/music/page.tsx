@@ -107,7 +107,7 @@ export default function MusicPage() {
         ) : featured ? (
           <div
             onClick={() => router.push(`/music/track/${featured.mbid}`)}
-            className="cursor-pointer relative w-full rounded-3xl overflow-hidden bg-gradient-to-r from-surface-elevated to-surface-secondary border border-border-glass p-8 flex gap-8 items-center group hover:border-white/20 transition-all"
+            className="cursor-pointer relative w-full rounded-3xl overflow-hidden bg-gradient-to-r from-surface-elevated to-surface-secondary border border-border-glass p-8 flex gap-8 items-center group hover:border-border-strong transition-all"
           >
             {/* Artwork */}
             <div className="shrink-0 w-32 h-32 sm:w-48 sm:h-48 rounded-2xl overflow-hidden bg-surface-primary border border-border-glass shadow-xl">
@@ -232,7 +232,7 @@ export default function MusicPage() {
                   <Link
                     key={genre}
                     href={`/music/genres?genre=${encodeURIComponent(genre)}`}
-                    className="px-4 py-2 rounded-full text-body-sm font-medium bg-surface-elevated border border-border-glass text-content-secondary hover:text-content-primary hover:bg-surface-glass hover:border-white/20 transition-all"
+                    className="px-4 py-2 rounded-full text-body-sm font-medium bg-surface-elevated border border-border-glass text-content-secondary hover:text-content-primary hover:bg-surface-glass hover:border-border-strong transition-all"
                   >
                     {genre}
                   </Link>

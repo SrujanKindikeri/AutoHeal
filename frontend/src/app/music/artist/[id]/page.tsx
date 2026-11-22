@@ -41,7 +41,7 @@ function ArtistAvatar({ artist }: { artist: MBArtist }) {
     .join("")
     .toUpperCase();
   return (
-    <div className="w-32 h-32 sm:w-48 sm:h-48 rounded-full flex items-center justify-center bg-gradient-to-br from-accent-blue/30 to-accent-purple/30 border-4 border-border-glass shadow-xl text-heading-lg font-bold text-white">
+    <div className="w-32 h-32 sm:w-48 sm:h-48 rounded-full flex items-center justify-center bg-gradient-to-br from-accent-blue/30 to-accent-purple/30 border-4 border-border-glass shadow-xl text-heading-lg font-bold text-content-primary">
       {initials || <Mic2 className="w-12 h-12 text-accent-blue/60" />}
     </div>
   );

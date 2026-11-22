@@ -89,7 +89,7 @@ export default function EditPlaylistPage() {
     return (
       <AppShell>
         <div className="max-w-xl mx-auto px-4 py-16 text-center">
-          <p className="text-red-400">{error ?? "Playlist not found."}</p>
+          <p className="text-accent-coral">{error ?? "Playlist not found."}</p>
         </div>
       </AppShell>
     );
@@ -195,7 +195,7 @@ export default function EditPlaylistPage() {
             type="url"
           />
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-accent-coral">{error}</p>}
 
           <div className="flex gap-3 pt-2">
             <Button type="submit" variant="primary" isLoading={saving} className="flex-1">
