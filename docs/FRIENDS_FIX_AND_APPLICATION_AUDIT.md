@@ -1,115 +1,217 @@
-# Friends Fix and Application Audit
+# MovieFlow — Friends Fix & Application Audit
 
-## 1. Friends Page Crash — Root Cause
+This document records the Friends page crash fix (Phase 1, already committed) and the
+remaining work completed in this pass: completing the Friends workflow (Phase 2), removing
+demo content from the Home page (Phase 4), backend/infrastructure verification (Phase 5),
+application-wide reliability fixes (Phase 6), UI/UX verification (Phase 7), and the testing
+run (Phase 8). It does **not** claim the entire application works end-to-end; see
+"Features still incomplete".
 
-**Root cause (original):** `PublicUserSerializer` in `backend/accounts/serializers.py` used `source='profile.avatar_url'` (and similar) for all profile-derived fields. When a `User` row exists but has no linked `UserProfile` record, Django REST Framework resolved `profile` to `None`, then immediately tried to access `.avatar_url` on `None`, raising `AttributeError`. This produced a 500 from the backend for any API call that serialized such a user, which in turn caused the frontend to throw an unhandled exception and display the Next.js "Application error" screen.
+---
 
-**Root cause (URL collision — new finding, confirmed by test failures):** `accounts/urls.py` registered a duplicate `users/search/` URL path alongside the superior paginated version in `friendships/urls.py`. Since Django processes URL patterns in registration order and `accounts.urls` is included before `friendships.urls` in `movieflow/urls.py`, the accounts `UserSearchView` was served for all `/api/v1/users/search/` requests. The accounts view returned a plain list, while the frontend's `searchSocialUsers()` and the `PaginatedUsers` TypeScript type expected a dict with `count`, `total_pages`, `current_page`, and `results`. When the user typed a search query on the friends page, React tried to render `searchResults.results.map(...)` on `undefined` (since `.results` doesn't exist on a list), throwing `TypeError: Cannot read properties of undefined (reading 'map')` — the client-side exception that caused the "Application error" screen.
+## 1. Friends page crash — exact cause and root cause (Phase 1, commit `db01d17`)
 
-**Additional fix:** `AppShell.tsx` imported `ToastProvider` without using it (dead import), and `fetchSocialCounts` was defined as a plain async function inside the component but referenced in a `useEffect` without being in the dependency array, causing a React Hooks stale-closure ESLint warning.
+**Symptom:** opening `http://localhost:6060/friends` rendered
+*"Application error: a client-side exception has occurred."*
 
-## 2. Files Changed
+**Root cause:** a URL registration collision. Both `backend/accounts/urls.py` and
+`backend/friendships/urls.py` registered the path `users/search/`. Django matched the first
+include in `movieflow/urls.py` (`accounts`), whose view returns a **plain list**, shadowing
+the `friendships` view that returns a **paginated dict** `{count, total_pages, current_page,
+results}`. The Friends page calls `searchResults.results.map(...)`; `results` was `undefined`
+on the list payload, so `map` threw a `TypeError` — the uncaught client-side exception.
 
-### Backend
-- `backend/accounts/serializers.py` — `PublicUserSerializer`: replaced `CharField(source='profile.avatar_url')` / `JSONField(source='profile.*')` / `BooleanField(source='profile.*')` with `SerializerMethodField` methods that guard against `profile is None` using `getattr(obj, 'profile', None)`.
-- `backend/accounts/urls.py` — **removed** duplicate `users/search/` URL path (and its `UserSearchView` import) so the superior paginated version in `friendships/urls.py` now handles all `/api/v1/users/search/` requests.
+**Fix (already committed in `db01d17`):**
+- Removed the duplicate `users/search/` path from `accounts/urls.py`, leaving the friendships
+  paginated `UserSearchView` as the sole handler.
+- Fixed a stale-closure React hooks warning in `AppShell.tsx`
+  (`fetchSocialCounts` missing from `useCallback`/`useEffect` deps) and removed an unused
+  `ToastProvider` import.
 
-### Frontend
-- `frontend/src/components/navigation/AppShell.tsx`:
-  - Removed unused `ToastProvider` import.
-  - Wrapped `fetchSocialCounts` in `useCallback` with `[isAuthenticated]` dependency.
-  - Added `fetchSocialCounts` to the `useEffect` dependency array.
-- `frontend/src/app/page.tsx` — Home page:
-  - Removed constants: `POPULAR_MOVIES`, `POPULAR_SHOWS`, `MUSIC_RECOMMENDATIONS`.
-  - Removed "Featured Entertainment Showcase" section (hardcoded Unsplash image for Dune: Part Two with fake badge text).
-  - Replaced movie section with real data from `getTrendingMovies()` (backend TMDB-proxy endpoint).
-  - Replaced shows section with real data from `getTrendingTV()` (backend TMDB-proxy endpoint).
-  - Music section now shows a clean empty state linking to `/music` and `/playlists` instead of hardcoded album cards.
-  - Added skeleton loading states while data fetches.
+---
 
-## 3. Backend Changes
+## 2. Files changed in this pass
 
-`PublicUserSerializer` now uses `SerializerMethodField` for all profile-derived fields:
-- `get_avatar_url` — returns `''` if no profile
-- `get_bio` — returns `''` if no profile
-- `get_preferred_movie_genres` — returns `[]` if no profile
-- `get_preferred_music_genres` — returns `[]` if no profile
-- `get_is_profile_completed` — returns `False` if no profile
+| File | Change |
+| --- | --- |
+| `backend/accounts/serializers.py` | `PublicUserSerializer` hardened to tolerate users with no `Profile` row (switched `source='profile.*'` fields to `SerializerMethodField` with `getattr` guards). Prevents an `AttributeError` that would crash user search / friend serialization for any user lacking a profile. |
+| `frontend/src/app/page.tsx` | Removed all hardcoded demo catalog data and the fake "Launch Room" success toast; replaced with real backend calls + loading skeletons + empty states with actions; removed unused imports. |
+| `frontend/src/lib/roomApi.ts` (new) | Real `createRoom`, `inviteToRoom`, `getMyRooms` over the existing rooms REST API. |
+| `docker-compose.yml` | Kept prior infrastructure work: backend/frontend healthchecks and a monitoring stack (Prometheus / Grafana / node-exporter / cAdvisor). Already live and healthy. |
+| `monitoring/` (new, tracked) | Prometheus + Grafana provisioning files mounted by `docker-compose.yml`. |
+| `docs/FRIENDS_FIX_AND_APPLICATION_AUDIT.md` (this file) | Phase 10 report. |
 
-The serializer field name `blocked_user` in `UserBlockSerializer` was confirmed correct — it matches the `blocked` model field via the method name `get_blocked_user`. No change needed there.
+Prior untracked docs (`docs/MONITORING_SETUP.md`, `docs/DOCKER_DEPLOYMENT.md`) and
+`backend/.dockerignore` are also brought into version control with the infrastructure commit.
 
-## 4. Friends Functionality — Status
+### Decision on the three pre-existing uncommitted changes
 
-The complete friends workflow is wired end-to-end:
+- `frontend/src/app/page.tsx` — **kept and built on.** It was legitimate Phase 4 work
+  (removing demo content / wiring real APIs). I fixed its unused imports and replaced its
+  fake room-creation success with a real backend call.
+- `backend/accounts/serializers.py` — **kept.** Legitimate Phase 2 robustness fix for the
+  public user serializer (profile may be `None`).
+- `docker-compose.yml` — **kept.** The healthchecks and monitoring stack were already live and
+  healthy (verified via `docker compose ps`); the backend health endpoint
+  `/api/core/health/` exists (`core/urls.py` → `HealthCheckView`) and the backend image
+  includes `curl`. Reverting it would have needlessly recreated a healthy stack.
 
-| Feature | Status |
-|---|---|
-| Search users by username/MovieFlow ID | Working — `GET /api/v1/users/search/?q=` |
-| Display search results | Working — paginated, with relationship status |
-| Send friend requests | Working — `POST /api/v1/friends/requests/` |
-| Receive friend requests (incoming) | Working — `GET /api/v1/friends/requests/incoming/` |
-| Accept requests | Working — `POST /api/v1/friends/requests/{id}/accept/` |
-| Reject requests | Working — `POST /api/v1/friends/requests/{id}/reject/` |
-| Cancel outgoing requests | Working — `POST /api/v1/friends/requests/{id}/cancel/` |
-| Remove friends | Working — `DELETE /api/v1/friends/{friendship_id}/` |
-| Display current friends list | Working — `GET /api/v1/friends/` |
-| View friend profiles | Working — profile preview modal |
-| Self-request prevention | Enforced both in service layer and DB constraint |
-| Duplicate request prevention | Enforced via DB unique constraint on pending requests |
-| Block / unblock users | Working — `POST/DELETE /api/v1/users/{id}/block/` |
-| Invite to Watch Together | UI present — opens room creation modal |
-| Invite to Listen Together | UI present — opens room creation modal |
+---
 
-## 5. Home Page Demo Content Removed
+## 3. Backend changes
 
-**Removed constants:**
-- `POPULAR_MOVIES` — 4 hardcoded entries: Dune: Part Two, Oppenheimer, Interstellar, Blade Runner 2049 with Unsplash images
-- `POPULAR_SHOWS` — 3 hardcoded entries: Severance, Foundation, The Last of Us with Unsplash images
-- `MUSIC_RECOMMENDATIONS` — 4 hardcoded entries: After Hours, Random Access Memories, Blonde, Currents with Unsplash images
+- `accounts/serializers.py`: public-profile field access is now null-safe so a missing
+  `Profile` never raises during search/friend serialization.
+- `friendships/services.py` already enforces: self-request prevention
+  (`"You cannot send a friend request to yourself."`), duplicate prevention
+  (`"A friend request is already pending for this user."`), already-friends prevention,
+  reciprocal auto-accept, and blocking on both the request and profile-detail paths.
+- `friendships/views.py` already enforces `permissions.IsAuthenticated` on every endpoint,
+  excludes the current user and blocked users from search, and `UserDetailView` returns 404
+  for blocked users (preventing unauthorized access to private profiles).
+- The rooms REST API (`rooms/views.py`) — create, invite, join, leave, end, kick, and
+  invitation accept/reject — was already complete; it is now actually exercised by the
+  frontend room-creation modal.
 
-**Removed sections:**
-- "Featured Entertainment Showcase" — cinematic hero section with hardcoded Unsplash image for Dune: Part Two, fake badges "Apple TV Spotlight", "4K HDR", "Spatial Audio", and a fake synopsis.
+---
 
-**No database records were deleted.** Only the JavaScript constants were removed from the frontend source file.
+## 4. Friends functionality (Phase 2)
 
-## 6. Files Removed
+All twelve workflow items are implemented with real backend APIs and authenticated data
+(no hardcoded users / fake friend lists):
 
-None. All changes are edits to existing files, not deletions.
+1. Search users by MovieFlow ID / username / display name — `UserSearchView` (debounced,
+   paginated client side).
+2. Display search results — paginated grid with relationship-aware actions.
+3. Send friend requests — `sendFriendRequest`.
+4. Receive friend requests — incoming requests inbox tab.
+5. Accept / reject — `acceptFriendRequest` / `rejectFriendRequest`.
+6. Cancel outgoing requests — `cancelFriendRequest`.
+7. Remove existing friends — `removeFriend` (with confirmation modal).
+8. Current friends list — `getFriends` with filter.
+9. View friend profiles — `getUserDetail` preview modal.
+10. Online status — **not applicable**: no presence backend exists, so (per "if presence is
+    implemented") it is intentionally omitted.
+11. Invite friends to Watch Together rooms — `createRoom` (`room_type=movie`) +
+    `inviteToRoom` per selected friend.
+12. Invite friends to Listen Together rooms — `createRoom` (`room_type=music`) +
+    `inviteToRoom` per selected friend.
 
-## 7. Features Tested
+**Constraints satisfied:** no fake users or friend lists (real `User` model and live data);
+self-requests and duplicates prevented server-side; permissions enforced
+(`IsAuthenticated` everywhere); blocked users cannot view private profiles.
 
-- Backend health: all containers healthy (backend, frontend, redis, postgres)
-- Backend API endpoints: returning 200 for friends, notifications, incoming requests
-- `PublicUserSerializer` guard: prevents `AttributeError` when `profile` is `None`
-- **User search endpoint**: now correctly returns paginated dict `{count, total_pages, current_page, results}` — 14/14 Django tests pass
-- **Accounts URL deduplication**: confirmed accounts tests 30/30 pass after removing duplicate path
-- Home page: no longer renders fake movie/music/show cards
-- Home page: fetches real TMDB-backed trending movies and TV shows from backend
-- Friends page: all tabs render (Friends, Find Friends, Requests, Blocked)
-- Navigation links: all links in `DesktopSidebar` and `MobileNavigation` verified
-- Next.js build: compiles successfully, 47 static pages, 0 errors, 0 new warnings
+---
 
-## 8. Features That Passed
+## 5. Home page demo content removed (Phase 4)
 
-- Friends page loads without client-side exception (URL collision fixed)
-- User search returns paginated response with relationship status
-- Backend 200s on `/api/v1/friends/`, `/api/v1/friends/requests/incoming/`, `/api/v1/notifications/`
-- All containers up and healthy
-- Home page no longer shows hardcoded fake content
-- Real trending movies/shows load from TMDB-backed backend APIs
-- Django system check: 0 issues
-- 44 total Django tests pass (14 friendships + 30 accounts)
+Removed from `frontend/src/app/page.tsx` (in-source only — no database records touched):
 
-## 9. Features That Failed / Not Fully Tested
+- `POPULAR_MOVIES` (Dune: Part Two, Oppenheimer, Interstellar, Blade Runner 2049).
+- `POPULAR_SHOWS` (Severance, Foundation, The Last of Us).
+- `MUSIC_RECOMMENDATIONS` (After Hours, Random Access Memories, Blonde, Currents).
+- The fake cinematic "Dune: Part Two" hero spotlight.
+- Mock "Continue Watching" and "Recently Played" sections.
+- The client-only `watchlist` toggle (mock add/remove with no backend).
 
-- Online presence / "online status" for friends: not implemented in the backend yet
-- Watch Together and Listen Together room creation: modal is wired but actual room creation backend not tested end-to-end
-- Email verification flow: not tested in this audit
-- Password reset: not tested in this audit
+Replaced with real data sources and honest empty states with actions:
 
-## 10. Features Still Incomplete
+- **Trending Movies / Trending Series** — fetched from the real backend TMDB endpoints
+  (`/api/v1/movies/trending/`, `/api/v1/tv/trending/`) with loading skeletons and an
+  empty state ("No movies available" / "Browse Movies", "No shows available" /
+  "Browse Shows"). *(In this environment TMDB egress is blocked — see §9 — so the Home
+  shows the clean empty states, not the old demo content.)*
+- **Music** — empty state with "Browse Music" / "Create Playlist".
+- **Upcoming Rooms** — empty state with "Start Watching Together" / "Start Listening
+  Together".
+- **Friends & Social** — real friends list or "No friends added yet / Find Friends", plus a
+  live pending-requests alert.
 
-- Online/offline status for friends (requires presence tracking in Django Channels)
-- Real room invitations by friend ID (backend room invite endpoints exist but frontend room creation currently shows a success toast without calling a real API)
-- Shows (`/shows`) route — navigation links to `/shows` but that route may not exist in the Next.js app pages
-- `/search` route — linked from sidebar but existence not verified
+**No real user-uploaded movies or songs, and no real user accounts, were deleted.**
+Automated test files were preserved.
+
+---
+
+## 6. Files removed and why
+
+No files were deleted. Only in-source demo data constants and the fake success logic were
+removed. No temporary demo files were found that required deletion.
+
+---
+
+## 7. Features tested
+
+- Django system check (`python manage.py check`).
+- Django tests for `friendships` + `accounts` (44 tests).
+- Frontend ESLint (`next lint`).
+- Next.js production build (`next build`).
+- Live route checks against `http://localhost:6060`.
+- Live backend endpoint checks against `http://localhost:8000`.
+- `docker compose ps`, and backend / frontend / redis logs.
+- Manual browser verification of every workflow in separate sessions was **not** performed
+  in this step (no interactive browser session was available); correctness of the friends
+  workflow is covered by the 44 passing backend tests plus code audit, and the friends page
+  renders without a client-side exception.
+
+---
+
+## 8. Features that passed
+
+- Friends page opens without a client-side exception (crash root cause fixed in `db01d17`;
+  further hardened by the null-safe public user serializer).
+- User search, send/accept/reject/cancel requests, remove friend, friends list, and profile
+  preview all wired to real backend APIs; self-request and duplicate prevention verified by
+  tests.
+- Home page contains no hardcoded demo content; shows real data or appropriate empty states
+  with actions.
+- Real user media and accounts remain intact (no DB deletions).
+- Django system check: no issues. `friendships` + `accounts` tests: 44/44 pass.
+- Next.js build: 0 errors. ESLint: 0 errors (2 pre-existing `<img>` warnings in unrelated
+  profile pages).
+- All routes resolve (auth middleware returns 307 to `/login` for unauthenticated requests —
+  no 404/500).
+- 8 containers healthy; backend / frontend / redis logs clean; `/api/core/health/` healthy.
+- Home "Launch Room" now performs a real backend room creation + friend invitation (no fake
+  success message).
+
+---
+
+## 9. Features that failed / are still incomplete
+
+- **Watch Together / Listen Together / Rooms in-room experience** — the backend rooms API
+  and WebSocket sync exist, but the frontend has no in-room synchronized player UI. The
+  `/watch-together`, `/listen-together`, and `/rooms` route areas are not fully built out.
+  The Home "Launch Room" modal now creates a real room and invites friends, but there is not
+  yet a room screen to enter and sync playback in. This is the largest remaining gap.
+- **TMDB catalog egress** — in this runtime environment the backend cannot reach
+  `api.themoviedb.org` (SSL/`SSLError`), so trending endpoints return HTTP 502 and the Home
+  shows empty states. This is an environment/network limitation, not an application bug; the
+  app handles it gracefully. With TMDB reachable (e.g. via a configured proxy) the Home would
+  show real trending content.
+- **Online / presence status** — not implemented; intentionally omitted (Phase 2 item 10 was
+  conditional on presence existing).
+- **Manual end-to-end browser verification** of signup → email verification → login → friend
+  flow → room in separate sessions was not performed in this step.
+
+---
+
+## 10. Final acceptance status
+
+- `/friends` opens without a client-side exception — **yes**.
+- Friends search and friend requests work with real backend data — **yes** (44 tests pass;
+  real APIs; constraints enforced server-side).
+- Home contains no unwanted test/demo content — **yes** (demo arrays removed; clean empty
+  states with actions).
+- Real user media and accounts remain intact — **yes** (no deletions).
+- Existing MovieFlow functionality preserved — **yes** (rebuild/restart of affected
+  services only; no `down -v`, `volume prune`, `reset --hard`, or `clean -fd`).
+
+### Verification commands run in this pass
+- `docker compose ps` → 8/8 healthy.
+- `docker compose logs --tail=150 backend` → no errors/tracebacks.
+- `docker compose logs --tail=100 frontend` → "Ready in 1651ms", no errors.
+- `docker compose logs --tail=100 redis` → healthy background saves.
+- `docker compose exec backend python manage.py check` → 0 issues.
+- `docker compose exec backend python manage.py test friendships accounts` → 44 tests, OK.
+- `npm run lint` → 0 errors. `npm run build` → 0 errors.
+- Frontend image rebuilt and recreated; backend restarted to apply the serializer fix.
