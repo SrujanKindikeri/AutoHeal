@@ -380,24 +380,87 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 3. Quick Actions: Create Watch or Listening Rooms */}
+        {/* 3. Quick Actions: Movies, Music, Rooms, Friends */}
         <section aria-label="Quick Actions">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <GlassPanel
+              surface="interactive"
+              onClick={() => router.push("/movies")}
+              className="p-5 flex items-center justify-between cursor-pointer group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent-blue/15 text-accent-blue flex items-center justify-center border border-accent-blue/20 shadow-md">
+                  <Film className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-blue transition-colors">
+                    Movies
+                  </div>
+                  <div className="text-caption text-content-muted">
+                    Browse & discover films
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
+            </GlassPanel>
+
+            <GlassPanel
+              surface="interactive"
+              onClick={() => router.push("/music")}
+              className="p-5 flex items-center justify-between cursor-pointer group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent-pink/15 text-accent-pink flex items-center justify-center border border-accent-pink/20 shadow-md">
+                  <Music className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-pink transition-colors">
+                    Music
+                  </div>
+                  <div className="text-caption text-content-muted">
+                    Hi-fi albums & tracks
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
+            </GlassPanel>
+
+            <GlassPanel
+              surface="interactive"
+              onClick={() => router.push("/friends")}
+              className="p-5 flex items-center justify-between cursor-pointer group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent-purple/15 text-accent-purple flex items-center justify-center border border-accent-purple/20 shadow-md">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-purple transition-colors">
+                    Friends
+                  </div>
+                  <div className="text-caption text-content-muted">
+                    Your social network
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
+            </GlassPanel>
+
             <GlassPanel
               surface="interactive"
               onClick={() => handleOpenRoomModal("watch")}
               className="p-5 flex items-center justify-between cursor-pointer group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent-blue/15 text-accent-blue flex items-center justify-center border border-accent-blue/20 shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-accent-gold/15 text-accent-gold flex items-center justify-center border border-accent-gold/20 shadow-md">
                   <Tv className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-blue transition-colors">
-                    Watch Together
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-gold transition-colors">
+                    Watch Room
                   </div>
                   <div className="text-caption text-content-muted">
-                    Sync movies with friends & FaceTime video
+                    Sync movies with friends
                   </div>
                 </div>
               </div>
@@ -410,36 +473,15 @@ export default function HomePage() {
               className="p-5 flex items-center justify-between cursor-pointer group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent-pink/15 text-accent-pink flex items-center justify-center border border-accent-pink/20 shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-accent-emerald/15 text-accent-emerald flex items-center justify-center border border-accent-emerald/20 shadow-md">
                   <Headphones className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-pink transition-colors">
-                    Listen Together
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-emerald transition-colors">
+                    Listen Room
                   </div>
                   <div className="text-caption text-content-muted">
-                    Shared queue, lossless audio & voice chat
-                  </div>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
-            </GlassPanel>
-
-            <GlassPanel
-              surface="interactive"
-              onClick={() => router.push("/friends?tab=search")}
-              className="p-5 flex items-center justify-between cursor-pointer group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent-purple/15 text-accent-purple flex items-center justify-center border border-accent-purple/20 shadow-md">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-purple transition-colors">
-                    Find Friends
-                  </div>
-                  <div className="text-caption text-content-muted">
-                    Discover people by MovieFlow ID or username
+                    Shared queue & voice chat
                   </div>
                 </div>
               </div>
