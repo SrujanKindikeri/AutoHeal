@@ -30,7 +30,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   return (
     <div
       style={style}
-      className={`bg-white/[0.04] border border-white/[0.03] animate-pulse ${variantStyles[variant]} ${className}`}
+      className={`bg-surface-primary border border-border-subtle animate-pulse ${variantStyles[variant]} ${className}`}
       aria-hidden="true"
     />
   );

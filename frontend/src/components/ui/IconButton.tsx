@@ -19,9 +19,9 @@ const variantStyles: Record<IconButtonVariant, string> = {
   primary: "bg-accent-blue hover:bg-accent-blue-hover text-white shadow-lg shadow-blue-500/20 border border-transparent",
   secondary: "bg-surface-elevated hover:bg-surface-elevated/80 text-content-primary border border-border-strong",
   glass: "apple-button text-content-primary backdrop-blur-md shadow-glass",
-  subtle: "bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary hover:text-content-primary border border-border-subtle",
+  subtle: "bg-black/[0.04] hover:bg-black/[0.08] text-content-secondary hover:text-content-primary border border-border-subtle",
   danger: "bg-accent-coral/15 text-accent-coral hover:bg-accent-coral/25 border border-accent-coral/30",
-  ghost: "bg-transparent hover:bg-white/[0.08] text-content-secondary hover:text-content-primary border border-transparent",
+  ghost: "bg-transparent hover:bg-black/[0.08] text-content-secondary hover:text-content-primary border border-transparent",
 };
 
 const sizeStyles: Record<IconButtonSize, string> = {

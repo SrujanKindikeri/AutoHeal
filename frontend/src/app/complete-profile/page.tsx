@@ -135,32 +135,32 @@ export default function CompleteProfilePage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#08080a] text-white">
-        <div className="text-xs text-white/50">Loading profile setup...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white text-content-primary">
+        <div className="text-xs text-content-muted">Loading profile setup...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#08080a] text-[#f5f5f7]">
+    <div className="min-h-screen flex flex-col bg-white text-content-primary">
       <Navbar />
 
       <main className="flex-1 max-w-3xl mx-auto px-6 py-12 w-full space-y-8">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#bf5af2]/10 border border-[#bf5af2]/20 text-[#bf5af2] text-xs font-medium">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-purple/10 border border-accent-purple/20 text-purple-700 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Step 2 of Onboarding</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-content-primary">
             Personalize Your Entertainment
           </h1>
-          <p className="text-xs sm:text-sm text-white/60 max-w-lg mx-auto">
+          <p className="text-xs sm:text-sm text-content-secondary max-w-lg mx-auto">
             Choose your avatar, entertainment tastes, and preferences. Complete this step to unlock MovieFlow rooms.
           </p>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-start gap-2.5">
+          <div className="p-3.5 rounded-xl bg-accent-coral/10 border border-accent-coral/20 text-accent-coral text-xs flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -169,13 +169,13 @@ export default function CompleteProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Identity & Avatar */}
           <div className="p-6 rounded-3xl apple-glass-card space-y-6">
-            <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono text-white/70">
+            <h2 className="text-sm font-semibold text-content-secondary uppercase tracking-wider font-mono">
               1. Choose an Avatar & Bio
             </h2>
 
             {/* Avatar picker */}
             <div className="space-y-2">
-              <label className="text-xs text-white/60">Select Avatar</label>
+              <label className="text-xs text-content-secondary">Select Avatar</label>
               <div className="flex flex-wrap items-center gap-3">
                 {AVATAR_OPTIONS.map((url, i) => (
                   <button
@@ -184,8 +184,8 @@ export default function CompleteProfilePage() {
                     onClick={() => setSelectedAvatar(url)}
                     className={`relative w-14 h-14 rounded-full overflow-hidden border-2 transition-all ${
                       selectedAvatar === url
-                        ? "border-[#2997ff] ring-4 ring-[#2997ff]/20 scale-105"
-                        : "border-white/10 hover:border-white/30"
+                        ? "border-accent-blue ring-4 ring-accent-blue/20 scale-105"
+                        : "border-border-glass hover:border-border-strong"
                     }`}
                   >
                     <img src={url} alt={`Avatar option ${i + 1}`} className="w-full h-full object-cover" />
@@ -196,26 +196,26 @@ export default function CompleteProfilePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs text-white/70">Full Name</label>
+                <label className="text-xs text-content-secondary">Full Name</label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                  className="w-full px-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors"
                   placeholder="Your Name"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs text-white/70">Date of Birth (Optional)</label>
+                <label className="text-xs text-content-secondary">Date of Birth (Optional)</label>
                 <div className="relative">
-                  <Calendar className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
+                  <Calendar className="w-4 h-4 text-content-muted absolute left-3.5 top-3" />
                   <input
                     type="date"
                     value={dateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors [color-scheme:dark]"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors"
                   />
                 </div>
               </div>
@@ -223,15 +223,15 @@ export default function CompleteProfilePage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs text-white/70">Bio</label>
-                <span className="text-[10px] text-white/40 font-mono">{bio.length}/500</span>
+                <label className="text-xs text-content-secondary">Bio</label>
+                <span className="text-[10px] text-content-muted font-mono">{bio.length}/500</span>
               </div>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value.slice(0, 500))}
                 rows={3}
                 placeholder="Tell friends what movies, directors, or artists you love..."
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors resize-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors resize-none"
               />
             </div>
           </div>
@@ -240,12 +240,12 @@ export default function CompleteProfilePage() {
           <div className="p-6 rounded-3xl apple-glass-card space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-[#2997ff]" />
-                <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono text-white/70">
+                <Film className="w-4 h-4 text-accent-blue" />
+                <h2 className="text-sm font-semibold text-content-secondary uppercase tracking-wider font-mono">
                   2. Preferred Movie Genres
                 </h2>
               </div>
-              <span className="text-xs text-[#2997ff] font-medium font-mono">
+              <span className="text-xs text-accent-blue font-medium font-mono">
                 {selectedMovieGenres.length} selected
               </span>
             </div>
@@ -260,8 +260,8 @@ export default function CompleteProfilePage() {
                     onClick={() => toggleMovieGenre(genre)}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                       selected
-                        ? "bg-[#2997ff] text-white shadow-lg shadow-blue-500/20 scale-105"
-                        : "bg-white/[0.05] border border-white/[0.08] text-white/70 hover:text-white hover:bg-white/[0.1]"
+                        ? "bg-accent-blue text-white shadow-lg shadow-accent-blue/20 scale-105"
+                        : "bg-surface-primary border border-border-glass text-content-secondary hover:text-content-primary hover:bg-surface-primary/70"
                     }`}
                   >
                     {genre}
@@ -275,12 +275,12 @@ export default function CompleteProfilePage() {
           <div className="p-6 rounded-3xl apple-glass-card space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Music className="w-4 h-4 text-[#ff375f]" />
-                <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono text-white/70">
+                <Music className="w-4 h-4 text-pink-600" />
+                <h2 className="text-sm font-semibold text-content-secondary uppercase tracking-wider font-mono">
                   3. Preferred Music Genres
                 </h2>
               </div>
-              <span className="text-xs text-[#ff375f] font-medium font-mono">
+              <span className="text-xs text-pink-600 font-medium font-mono">
                 {selectedMusicGenres.length} selected
               </span>
             </div>
@@ -295,8 +295,8 @@ export default function CompleteProfilePage() {
                     onClick={() => toggleMusicGenre(genre)}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                       selected
-                        ? "bg-[#ff375f] text-white shadow-lg shadow-pink-500/20 scale-105"
-                        : "bg-white/[0.05] border border-white/[0.08] text-white/70 hover:text-white hover:bg-white/[0.1]"
+                        ? "bg-pink-600 text-white shadow-lg shadow-pink-500/20 scale-105"
+                        : "bg-surface-primary border border-border-glass text-content-secondary hover:text-content-primary hover:bg-surface-primary/70"
                     }`}
                   >
                     {genre}
@@ -311,7 +311,7 @@ export default function CompleteProfilePage() {
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-3 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all"
+              className="px-6 py-3 rounded-xl bg-accent-blue hover:bg-accent-blue-hover text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-accent-blue/20 disabled:opacity-50 transition-all"
             >
               {submitting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -45,7 +45,7 @@ export const Tabs: React.FC<TabsProps> = ({
               variant === "pill"
                 ? isActive
                   ? "bg-accent-blue text-white shadow-md shadow-blue-500/25 px-4 py-2 rounded-xl"
-                  : "text-content-secondary hover:text-content-primary hover:bg-white/[0.05] px-4 py-2 rounded-xl"
+                  : "text-content-secondary hover:text-content-primary hover:bg-black/[0.04] px-4 py-2 rounded-xl"
                 : isActive
                 ? "text-content-primary border-b-2 border-accent-blue pb-3 pt-2 px-3"
                 : "text-content-muted hover:text-content-secondary border-b-2 border-transparent pb-3 pt-2 px-3"
@@ -57,8 +57,8 @@ export const Tabs: React.FC<TabsProps> = ({
               <span
                 className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono ${
                   isActive
-                    ? "bg-white/25 text-white"
-                    : "bg-white/[0.08] text-content-secondary"
+                    ? "bg-black/20 text-white"
+                    : "bg-black/[0.05] text-content-secondary"
                 }`}
               >
                 {tab.badge}

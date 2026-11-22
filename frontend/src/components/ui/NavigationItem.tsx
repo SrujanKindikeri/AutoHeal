@@ -30,7 +30,7 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
       className={`group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-body-sm font-semibold transition-all duration-200 select-none ${
         isActive
           ? "bg-accent-blue text-white shadow-md shadow-blue-500/20"
-          : "text-content-secondary hover:text-content-primary hover:bg-white/[0.06]"
+          : "text-content-secondary hover:text-content-primary hover:bg-black/[0.04]"
       } ${className}`}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -48,7 +48,7 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
         <span
           className={`shrink-0 ml-2 text-caption px-2 py-0.5 rounded-full font-mono ${
             isActive
-              ? "bg-white/20 text-white font-bold"
+              ? "bg-black/20 text-white font-bold"
               : "bg-surface-elevated text-content-secondary border border-border-glass"
           }`}
         >

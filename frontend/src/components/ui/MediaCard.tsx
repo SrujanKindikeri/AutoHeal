@@ -83,7 +83,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
     >
       {/* Artwork Container */}
       <div
-        className={`relative w-full ${aspectStyles[aspectRatio]} overflow-hidden rounded-2xl sm:rounded-3xl bg-surface-primary border border-border-glass shadow-md group-hover:shadow-glass-elevated group-hover:border-white/[0.18] transition-all duration-300`}
+        className={`relative w-full ${aspectStyles[aspectRatio]} overflow-hidden rounded-2xl sm:rounded-3xl bg-surface-primary border border-border-glass shadow-md group-hover:shadow-glass-elevated group-hover:border-border-strong transition-all duration-300`}
       >
         {/* Placeholder before load */}
         {!imageLoaded && (
@@ -136,7 +136,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
             <button
               onClick={handlePlayClick}
               aria-label={`Play ${title}`}
-              className="w-12 h-12 rounded-full bg-white text-surface-background flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition duration-300 hover:bg-accent-blue hover:text-white"
+              className="w-12 h-12 rounded-full bg-white text-content-primary flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition duration-300 hover:bg-accent-blue hover:text-white"
             >
               <Play className="w-5 h-5 ml-0.5 fill-current" />
             </button>

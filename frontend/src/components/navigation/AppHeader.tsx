@@ -106,7 +106,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             type="button"
             onClick={onOpenDiagnostics}
             title="System & Network Status"
-            className="p-2 rounded-xl text-content-muted hover:text-content-primary hover:bg-white/[0.06] transition hidden sm:inline-flex"
+            className="p-2 rounded-xl text-content-muted hover:text-content-primary hover:bg-black/[0.04] transition hidden sm:inline-flex"
           >
             <Activity className="w-4 h-4 text-accent-blue" />
           </button>
@@ -117,7 +117,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="relative">
             <button
               onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-              className="relative p-2.5 rounded-xl text-content-secondary hover:text-content-primary hover:bg-white/[0.06] transition"
+              className="relative p-2.5 rounded-xl text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -163,8 +163,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         key={n.id}
                         className={`p-3 rounded-2xl border text-left space-y-1 transition ${
                           n.is_read
-                            ? "bg-white/[0.02] border-border-subtle text-content-muted"
-                            : "bg-surface-elevated/70 border-border-glass text-content-primary"
+                            ? "bg-surface-primary/40 border-border-subtle text-content-secondary"
+                            : "bg-surface-primary border-border-glass text-content-primary"
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -204,7 +204,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <Dropdown
             align="right"
             trigger={
-              <button className="flex items-center gap-2 p-1 rounded-2xl hover:bg-white/[0.06] transition">
+              <button className="flex items-center gap-2 p-1 rounded-2xl hover:bg-black/[0.04] transition">
                 <Avatar
                   name={user.full_name || user.username}
                   size="sm"

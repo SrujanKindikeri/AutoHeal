@@ -149,7 +149,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           />
           <button
             onClick={onOpenNotifications}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-body-sm font-semibold transition-all duration-200 select-none text-content-secondary hover:text-content-primary hover:bg-white/[0.06]`}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-body-sm font-semibold transition-all duration-200 select-none text-content-secondary hover:text-content-primary hover:bg-black/[0.04]`}
           >
             <div className="flex items-center gap-3">
               <span className="w-5 h-5 text-content-muted">
@@ -225,7 +225,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             <div className="grid grid-cols-2 gap-1.5 text-caption">
               <Link
                 href="/settings/account"
-                className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] text-content-secondary hover:text-content-primary transition border border-border-subtle"
+                className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-black/[0.03] hover:bg-black/[0.06] text-content-secondary hover:text-content-primary transition border border-border-subtle"
               >
                 <Settings className="w-3.5 h-3.5" />
                 <span>Settings</span>
@@ -258,7 +258,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               </Link>
               <Link
                 href="/register"
-                className="w-full text-center py-2 rounded-xl text-body-sm font-semibold bg-white/[0.04] hover:bg-white/[0.08] text-content-primary border border-border-subtle transition"
+                className="w-full text-center py-2 rounded-xl text-body-sm font-semibold bg-black/[0.04] hover:bg-black/[0.08] text-content-primary border border-border-subtle transition"
               >
                 Create Account
               </Link>

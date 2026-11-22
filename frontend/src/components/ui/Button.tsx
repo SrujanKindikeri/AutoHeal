@@ -30,11 +30,11 @@ const variantStyles: Record<ButtonVariant, string> = {
   glass:
     "apple-button text-content-primary backdrop-blur-md shadow-glass",
   subtle:
-    "bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary hover:text-content-primary border border-border-subtle",
+    "bg-black/[0.04] hover:bg-black/[0.08] text-content-secondary hover:text-content-primary border border-border-subtle",
   danger:
-    "bg-accent-coral/90 hover:bg-accent-coral text-white shadow-lg shadow-red-500/20 border border-transparent",
+    "bg-accent-coral hover:bg-accent-coral-hover text-white shadow-lg shadow-red-500/20 border border-transparent",
   ghost:
-    "bg-transparent hover:bg-white/[0.06] text-content-secondary hover:text-content-primary border border-transparent",
+    "bg-transparent hover:bg-black/[0.06] text-content-secondary hover:text-content-primary border border-transparent",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

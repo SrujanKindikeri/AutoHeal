@@ -247,7 +247,7 @@ export default function InvitationTokenPage() {
                   <Clock className="w-3.5 h-3.5" />
                   <span>
                     {isExpired ? (
-                      <span className="text-red-500">Expired {expiresAt}</span>
+                      <span className="text-red-600">Expired {expiresAt}</span>
                     ) : (
                       <>Expires {expiresAt}</>
                     )}

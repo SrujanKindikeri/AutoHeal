@@ -121,8 +121,8 @@ export default function AccountSettingsPage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#08080a] text-white">
-        <div className="text-xs text-white/50">Loading settings...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white text-content-primary">
+        <div className="text-xs text-content-muted">Loading settings...</div>
       </div>
     );
   }
@@ -131,38 +131,38 @@ export default function AccountSettingsPage() {
     <AppShell>
       <div className="max-w-4xl mx-auto px-6 py-8 w-full space-y-8">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">Account Settings</h1>
-          <p className="text-xs text-white/60">
+          <h1 className="text-3xl font-extrabold tracking-tight text-content-primary">Account Settings</h1>
+          <p className="text-xs text-content-secondary">
             Manage your credentials, MovieFlow ID, and social privacy controls.
           </p>
         </div>
 
         {/* Identity Overview */}
         <div className="p-6 rounded-3xl apple-glass-card space-y-4">
-          <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono text-white/70">
+          <h2 className="text-sm font-semibold text-content-secondary uppercase tracking-wider font-mono">
             Identity & Account Overview
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-1">
-              <div className="text-white/40 uppercase text-[10px]">MovieFlow ID (Permanent)</div>
-              <div className="text-sm font-bold text-[#2997ff]">{user.movieflow_id}</div>
-              <div className="text-[10px] text-white/50 font-sans">Database enforced unique ID</div>
+            <div className="p-4 rounded-2xl bg-surface-primary/50 border border-border-subtle space-y-1">
+              <div className="text-content-muted uppercase text-[10px]">MovieFlow ID (Permanent)</div>
+              <div className="text-sm font-bold text-accent-blue">{user.movieflow_id}</div>
+              <div className="text-[10px] text-content-muted font-sans">Database enforced unique ID</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-1">
-              <div className="text-white/40 uppercase text-[10px]">Email Address</div>
-              <div className="text-xs text-white font-sans font-medium truncate">{user.email}</div>
-              <div className="text-[10px] text-emerald-400 font-sans flex items-center gap-1">
+            <div className="p-4 rounded-2xl bg-surface-primary/50 border border-border-subtle space-y-1">
+              <div className="text-content-muted uppercase text-[10px]">Email Address</div>
+              <div className="text-xs text-content-primary font-sans font-medium truncate">{user.email}</div>
+              <div className="text-[10px] text-emerald-600 font-sans flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
                 Verified
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-1">
-              <div className="text-white/40 uppercase text-[10px]">Username</div>
-              <div className="text-xs text-white font-sans font-medium">@{user.username}</div>
-              <div className="text-[10px] text-white/50 font-sans">Discovery handle</div>
+            <div className="p-4 rounded-2xl bg-surface-primary/50 border border-border-subtle space-y-1">
+              <div className="text-content-muted uppercase text-[10px]">Username</div>
+              <div className="text-xs text-content-primary font-sans font-medium">@{user.username}</div>
+              <div className="text-[10px] text-content-muted font-sans">Discovery handle</div>
             </div>
           </div>
         </div>
@@ -170,14 +170,14 @@ export default function AccountSettingsPage() {
         {/* Privacy Settings */}
         <form onSubmit={handlePrivacySave} className="p-6 rounded-3xl apple-glass-card space-y-6">
           <div className="flex items-center gap-2">
-            <Eye className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono text-white/70">
+            <Eye className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-sm font-semibold text-content-secondary uppercase tracking-wider font-mono">
               Social & History Privacy
             </h2>
           </div>
 
           {privacyMsg && (
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+            <div className="p-3 rounded-xl bg-accent-emerald/10 border border-accent-emerald/20 text-emerald-700 text-xs">
               {privacyMsg}
             </div>
           )}
@@ -185,44 +185,44 @@ export default function AccountSettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Watch History Visibility */}
             <div className="space-y-2">
-              <label className="text-xs text-white/70 flex items-center gap-1.5 font-medium">
-                <Film className="w-4 h-4 text-[#2997ff]" />
+              <label className="text-xs text-content-secondary flex items-center gap-1.5 font-medium">
+                <Film className="w-4 h-4 text-accent-blue" />
                 <span>Watch History Visibility</span>
               </label>
               <select
                 value={watchVisibility}
                 onChange={(e: any) => setWatchVisibility(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors"
               >
-                <option value="public" className="bg-[#121217]">Public to everyone</option>
-                <option value="friends_only" className="bg-[#121217]">Friends only</option>
-                <option value="private" className="bg-[#121217]">Private (Only me)</option>
+                <option value="public">Public to everyone</option>
+                <option value="friends_only">Friends only</option>
+                <option value="private">Private (Only me)</option>
               </select>
             </div>
 
             {/* Listening History Visibility */}
             <div className="space-y-2">
-              <label className="text-xs text-white/70 flex items-center gap-1.5 font-medium">
-                <Music className="w-4 h-4 text-[#ff375f]" />
+              <label className="text-xs text-content-secondary flex items-center gap-1.5 font-medium">
+                <Music className="w-4 h-4 text-accent-pink" />
                 <span>Listening History Visibility</span>
               </label>
               <select
                 value={listenVisibility}
                 onChange={(e: any) => setListenVisibility(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors"
               >
-                <option value="public" className="bg-[#121217]">Public to everyone</option>
-                <option value="friends_only" className="bg-[#121217]">Friends only</option>
-                <option value="private" className="bg-[#121217]">Private (Only me)</option>
+                <option value="public">Public to everyone</option>
+                <option value="friends_only">Friends only</option>
+                <option value="private">Private (Only me)</option>
               </select>
             </div>
           </div>
 
           {/* Activity status toggle */}
-          <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
+          <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
             <div>
-              <div className="text-xs font-medium text-white">Broadcast Live Activity Status</div>
-              <div className="text-[11px] text-white/50">
+              <div className="text-xs font-medium text-content-primary">Broadcast Live Activity Status</div>
+              <div className="text-[11px] text-content-muted">
                 Allow friends to see when you are currently watching or listening.
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function AccountSettingsPage() {
               type="checkbox"
               checked={showActivity}
               onChange={(e) => setShowActivity(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#2997ff] focus:ring-0"
+              className="w-4 h-4 rounded border-border-strong bg-surface-primary/40 text-accent-blue focus:ring-0"
             />
           </div>
 
@@ -238,7 +238,7 @@ export default function AccountSettingsPage() {
             <button
               type="submit"
               disabled={privacyLoading}
-              className="px-5 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-white text-xs font-semibold disabled:opacity-50 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-surface-primary hover:bg-surface-primary/70 text-content-primary border border-border-glass text-xs font-semibold disabled:opacity-50 transition-all"
             >
               {privacyLoading ? "Saving..." : "Save Privacy Preferences"}
             </button>
@@ -248,8 +248,8 @@ export default function AccountSettingsPage() {
         {/* Change Password */}
         <form onSubmit={handlePasswordChange} className="p-6 rounded-3xl apple-glass-card space-y-6">
           <div className="flex items-center gap-2">
-            <Lock className="w-5 h-5 text-[#bf5af2]" />
-            <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono text-white/70">
+            <Lock className="w-5 h-5 text-accent-purple" />
+            <h2 className="text-sm font-semibold text-content-secondary uppercase tracking-wider font-mono">
               Change Password
             </h2>
           </div>
@@ -258,8 +258,8 @@ export default function AccountSettingsPage() {
             <div
               className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
                 passwordMsg.type === "success"
-                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                  : "bg-red-500/10 border-red-500/20 text-red-400"
+                  ? "bg-accent-emerald/10 border-accent-emerald/20 text-emerald-700"
+                  : "bg-accent-coral/10 border-accent-coral/20 text-accent-coral"
               }`}
             >
               {passwordMsg.type === "success" ? (
@@ -273,37 +273,37 @@ export default function AccountSettingsPage() {
 
           <div className="space-y-4 max-w-md">
             <div className="space-y-1.5">
-              <label className="text-xs text-white/70">Current Password</label>
+              <label className="text-xs text-content-secondary">Current Password</label>
               <input
                 type="password"
                 placeholder="••••••••"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs text-white/70">New Password (8+ characters)</label>
+              <label className="text-xs text-content-secondary">New Password (8+ characters)</label>
               <input
                 type="password"
                 placeholder="••••••••"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs text-white/70">Confirm New Password</label>
+              <label className="text-xs text-content-secondary">Confirm New Password</label>
               <input
                 type="password"
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#2997ff] transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-surface-primary border border-border-glass text-content-primary text-xs focus:outline-none focus:border-accent-blue transition-colors"
                 required
               />
             </div>
@@ -311,7 +311,7 @@ export default function AccountSettingsPage() {
             <button
               type="submit"
               disabled={passwordLoading}
-              className="py-2.5 px-5 rounded-xl bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold disabled:opacity-50 transition-all"
+              className="py-2.5 px-5 rounded-xl bg-accent-blue hover:bg-accent-blue-hover text-white text-xs font-semibold disabled:opacity-50 transition-all"
             >
               {passwordLoading ? "Updating..." : "Update Password"}
             </button>
@@ -319,20 +319,20 @@ export default function AccountSettingsPage() {
         </form>
 
         {/* Danger Zone */}
-        <div className="p-6 rounded-3xl apple-glass-card border border-red-500/20 space-y-4">
-          <h2 className="text-sm font-semibold text-red-400 uppercase tracking-wider font-mono">
+        <div className="p-6 rounded-3xl apple-glass-card border border-accent-coral/20 space-y-4">
+          <h2 className="text-sm font-semibold text-accent-coral uppercase tracking-wider font-mono">
             Session & Security
           </h2>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="text-xs font-medium text-white">Sign out of MovieFlow</div>
-              <div className="text-[11px] text-white/50">
+              <div className="text-xs font-medium text-content-primary">Sign out of MovieFlow</div>
+              <div className="text-[11px] text-content-muted">
                 Terminates your current session and invalidates active refresh tokens.
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-medium flex items-center gap-2 self-start sm:self-auto transition-colors"
+              className="px-4 py-2 rounded-xl bg-accent-coral/10 hover:bg-accent-coral/20 text-accent-coral border border-accent-coral/30 text-xs font-medium flex items-center gap-2 self-start sm:self-auto transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out Everywhere</span>

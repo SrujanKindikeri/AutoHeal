@@ -190,7 +190,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 <Link
                   href="/register"
                   onClick={() => setDrawerOpen(false)}
-                  className="py-2.5 text-center rounded-xl bg-white/[0.05] text-content-primary text-body-sm font-semibold border border-border-subtle"
+                  className="py-2.5 text-center rounded-xl bg-black/[0.04] text-content-primary text-body-sm font-semibold border border-border-subtle"
                 >
                   Register
                 </Link>
@@ -206,7 +206,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Link
               href="/shows"
               onClick={() => setDrawerOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
             >
               <Tv className="w-5 h-5 text-accent-blue" />
               <span>TV Shows</span>
@@ -214,7 +214,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Link
               href="/search"
               onClick={() => setDrawerOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
             >
               <Search className="w-5 h-5 text-accent-blue" />
               <span>Search</span>
@@ -229,7 +229,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Link
               href="/watch-together"
               onClick={() => setDrawerOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
             >
               <Video className="w-5 h-5 text-accent-purple" />
               <span>Watch Together</span>
@@ -237,7 +237,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Link
               href="/listen-together"
               onClick={() => setDrawerOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
             >
               <Radio className="w-5 h-5 text-accent-pink" />
               <span>Listen Together</span>
@@ -252,7 +252,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Link
               href="/watchlist"
               onClick={() => setDrawerOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
             >
               <Bookmark className="w-5 h-5 text-accent-gold" />
               <span>Watchlist</span>
@@ -260,7 +260,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Link
               href="/playlists"
               onClick={() => setDrawerOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
             >
               <ListMusic className="w-5 h-5 text-accent-blue" />
               <span>Playlists</span>
@@ -270,7 +270,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 setDrawerOpen(false);
                 if (onOpenNotifications) onOpenNotifications();
               }}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition text-left"
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition text-left"
             >
               <div className="flex items-center gap-3">
                 <Bell className="w-5 h-5 text-accent-blue" />
@@ -290,7 +290,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               <Link
                 href="/settings/account"
                 onClick={() => setDrawerOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-white/[0.05] transition"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-body-md font-medium text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
               >
                 <Settings className="w-5 h-5 text-content-muted" />
                 <span>Account Settings</span>

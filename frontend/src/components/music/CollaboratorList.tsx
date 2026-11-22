@@ -47,7 +47,7 @@ export const CollaboratorList: React.FC<CollaboratorListProps> = ({
 
   if (collaborators.length === 0) {
     return (
-      <p className="text-sm text-white/40 py-4">No collaborators yet.</p>
+      <p className="text-sm text-content-secondary py-4">No collaborators yet.</p>
     );
   }
 
@@ -56,15 +56,15 @@ export const CollaboratorList: React.FC<CollaboratorListProps> = ({
       {collaborators.map((collab) => (
         <div
           key={collab.id}
-          className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-white/[0.03] transition-colors"
+          className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-black/[0.03] transition-colors"
         >
           {/* Avatar initials */}
-          <div className="w-8 h-8 rounded-full bg-white/[0.1] flex items-center justify-center text-xs font-medium text-white/70 shrink-0">
+          <div className="w-8 h-8 rounded-full bg-surface-primary flex items-center justify-center text-xs font-medium text-content-secondary shrink-0">
             {collab.username.slice(0, 2).toUpperCase()}
           </div>
 
           {/* Username */}
-          <span className="flex-1 text-sm text-white/80 truncate">
+          <span className="flex-1 text-sm text-content-primary truncate">
             {collab.username}
           </span>
 
@@ -79,7 +79,7 @@ export const CollaboratorList: React.FC<CollaboratorListProps> = ({
                   e.target.value as CollaboratorPermission
                 )
               }
-              className="text-xs bg-white/[0.06] border border-white/[0.08] text-white/60 rounded-lg px-2 py-1 focus:outline-none disabled:opacity-50"
+              className="text-xs bg-surface-primary border border-border-glass text-content-secondary rounded-lg px-2 py-1 focus:outline-none disabled:opacity-50"
             >
               <option value="viewer">Viewer</option>
               <option value="editor">Editor</option>
@@ -88,8 +88,8 @@ export const CollaboratorList: React.FC<CollaboratorListProps> = ({
             <span
               className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
                 collab.permission === "editor"
-                  ? "bg-blue-500/15 text-blue-400"
-                  : "bg-white/[0.06] text-white/40"
+                  ? "bg-accent-blue/15 text-accent-blue"
+                  : "bg-surface-primary text-content-muted"
               }`}
             >
               {collab.permission === "editor" ? (
@@ -106,7 +106,7 @@ export const CollaboratorList: React.FC<CollaboratorListProps> = ({
             <button
               onClick={() => handleRemove(collab.user_id)}
               disabled={loadingId === collab.user_id}
-              className="text-white/20 hover:text-red-400 transition-colors disabled:opacity-50"
+              className="text-content-muted hover:text-accent-coral transition-colors disabled:opacity-50"
               aria-label={`Remove ${collab.username}`}
             >
               <X className="w-4 h-4" />
