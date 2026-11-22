@@ -1,21 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { NotificationItem } from "@/types/social";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Avatar } from "@/components/ui/Avatar";
-import { Dropdown, DropdownItem } from "@/components/ui/Dropdown";
 import {
   Bell,
-  Check,
   Settings,
   User as UserIcon,
   LogOut,
-  Sparkles,
   Activity,
+  Film,
+  ChevronDown,
 } from "lucide-react";
 
 export interface AppHeaderProps {
@@ -37,6 +36,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const { user, isAuthenticated, logout } = useAuthStore();
   const [searchVal, setSearchVal] = useState("");
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setUserMenuOpen(false);
+    };
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [userMenuOpen]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,47 +65,41 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     }
   };
 
-  const userMenuItems: DropdownItem[] = [
-    {
-      id: "profile",
-      label: "My Profile",
-      icon: <UserIcon className="w-4 h-4" />,
-      onClick: () => router.push("/profile"),
-    },
-    {
-      id: "settings",
-      label: "Account Settings",
-      icon: <Settings className="w-4 h-4" />,
-      onClick: () => router.push("/settings/account"),
-    },
-    ...(onOpenDiagnostics
-      ? [
-          {
-            id: "diagnostics",
-            label: "System Diagnostics",
-            icon: <Activity className="w-4 h-4 text-accent-blue" />,
-            onClick: onOpenDiagnostics,
-            divider: true,
-          },
-        ]
-      : []),
-    {
-      id: "logout",
-      label: "Sign Out",
-      icon: <LogOut className="w-4 h-4" />,
-      danger: true,
-      divider: !onOpenDiagnostics,
-      onClick: () => {
-        logout();
-        router.push("/login");
-      },
-    },
-  ];
+  const handleSignOut = () => {
+    setUserMenuOpen(false);
+    logout();
+    router.push("/login");
+  };
 
   return (
     <header
-      className={`sticky top-0 z-30 h-16 bg-surface-background/80 backdrop-blur-2xl border-b border-border-subtle px-4 sm:px-8 flex items-center justify-between gap-4 select-none ${className}`}
+      className={`sticky top-0 z-30 h-16 backdrop-blur-2xl border-b border-border-subtle px-4 sm:px-8 flex items-center justify-between gap-4 select-none ${className}`}
+      style={{ background: "var(--surface-glass)", borderColor: "var(--border-subtle)" }}
     >
+      {/* Logo — visible on mobile only (desktop shows sidebar brand) */}
+      <Link
+        href="/"
+        className="shrink-0 flex items-center gap-2 md:hidden focus:outline-none focus-visible:ring-2"
+        style={{ color: "var(--foreground)" }}
+        aria-label="MovieFlow home"
+      >
+        <span
+          className="w-8 h-8 rounded-xl flex items-center justify-center"
+          style={{
+            background: "linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%)",
+            boxShadow: "0 2px 8px color-mix(in srgb, var(--accent-blue) 25%, transparent)",
+          }}
+        >
+          <Film className="w-4 h-4" style={{ color: "var(--background)" }} />
+        </span>
+        <span
+          className="font-bold text-heading-sm tracking-tight"
+          style={{ color: "var(--foreground)" }}
+        >
+          MovieFlow
+        </span>
+      </Link>
+
       {/* Search Input */}
       <form onSubmit={handleSearchSubmit} className="max-w-md w-full">
         <SearchBar
@@ -106,7 +120,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             type="button"
             onClick={onOpenDiagnostics}
             title="System & Network Status"
-            className="p-2 rounded-xl text-content-muted hover:text-content-primary hover:bg-white/[0.06] transition hidden sm:inline-flex"
+            className="p-2 min-h-[44px] min-w-[44px] rounded-xl text-content-muted hover:text-content-primary hover:bg-black/[0.04] transition hidden sm:inline-flex"
           >
             <Activity className="w-4 h-4 text-accent-blue" />
           </button>
@@ -117,7 +131,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="relative">
             <button
               onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-              className="relative p-2.5 rounded-xl text-content-secondary hover:text-content-primary hover:bg-white/[0.06] transition"
+              className="relative p-2.5 min-h-[44px] min-w-[44px] rounded-xl text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -163,8 +177,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         key={n.id}
                         className={`p-3 rounded-2xl border text-left space-y-1 transition ${
                           n.is_read
-                            ? "bg-white/[0.02] border-border-subtle text-content-muted"
-                            : "bg-surface-elevated/70 border-border-glass text-content-primary"
+                            ? "bg-surface-primary/40 border-border-subtle text-content-secondary"
+                            : "bg-surface-primary border-border-glass text-content-primary"
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -201,19 +215,94 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* User Avatar Menu or Sign In */}
         {isAuthenticated && user ? (
-          <Dropdown
-            align="right"
-            trigger={
-              <button className="flex items-center gap-2 p-1 rounded-2xl hover:bg-white/[0.06] transition">
-                <Avatar
-                  name={user.full_name || user.username}
-                  size="sm"
-                  src={user.profile?.avatar_url}
-                />
-              </button>
-            }
-            items={userMenuItems}
-          />
+          <div ref={userMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center gap-2 p-1 rounded-2xl hover:bg-black/[0.04] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
+              aria-label="User menu"
+              aria-expanded={userMenuOpen}
+            >
+              <Avatar
+                name={user.full_name || user.username}
+                size="sm"
+                src={user.profile?.avatar_url}
+              />
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-content-muted transition-transform duration-200 hidden sm:block ${
+                  userMenuOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {userMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-3xl apple-glass-elevated border border-border-subtle shadow-glass-elevated z-50 animate-scale-in overflow-hidden">
+                {/* Header: avatar + name + email */}
+                <div
+                  className="p-4 border-b border-border-subtle cursor-pointer hover:bg-black/[0.03] transition"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    router.push("/profile");
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      name={user.full_name || user.username}
+                      size="md"
+                      src={user.profile?.avatar_url}
+                    />
+                    <div className="min-w-0">
+                      <div className="text-body-sm font-bold text-content-primary truncate">
+                        {user.full_name || user.username}
+                      </div>
+                      <div className="text-caption text-content-muted truncate">
+                        {user.email}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu items */}
+                <div className="p-1.5 space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); router.push("/profile"); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-body-sm text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition text-left"
+                  >
+                    <UserIcon className="w-4 h-4 shrink-0" />
+                    <span>My Profile</span>
+                  </button>
+                  <Link
+                    href="/settings/account"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-body-sm text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition"
+                  >
+                    <Settings className="w-4 h-4 shrink-0" />
+                    <span>Settings</span>
+                  </Link>
+                  {onOpenDiagnostics && (
+                    <button
+                      type="button"
+                      onClick={() => { setUserMenuOpen(false); onOpenDiagnostics(); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-body-sm text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition text-left"
+                    >
+                      <Activity className="w-4 h-4 shrink-0 text-accent-blue" />
+                      <span>System Diagnostics</span>
+                    </button>
+                  )}
+                  <div className="my-1 border-t border-border-subtle" />
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-body-sm text-accent-coral hover:bg-accent-coral/10 transition text-left"
+                  >
+                    <LogOut className="w-4 h-4 shrink-0" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="flex items-center gap-2">
             <Link

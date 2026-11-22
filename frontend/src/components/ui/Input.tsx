@@ -36,7 +36,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-body-sm font-medium text-content-secondary"
+            className="block text-body-sm font-medium text-content-primary"
           >
             {label}
           </label>
@@ -57,10 +57,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={
               error ? errorId : helperText ? helperId : undefined
             }
-            className={`w-full rounded-2xl bg-surface-primary/80 border text-body-md text-content-primary placeholder:text-content-muted transition-all duration-200 outline-none ${
+            className={`w-full rounded-2xl bg-white border text-body-md text-content-primary placeholder:text-content-muted transition-all duration-200 outline-none ${
               error
                 ? "border-accent-coral/60 focus:border-accent-coral focus:ring-1 focus:ring-accent-coral/30"
-                : "border-border-glass focus:border-accent-blue/80 focus:ring-1 focus:ring-accent-blue/20"
+                : "border-border-default focus:border-accent-blue/80 focus:ring-1 focus:ring-accent-blue/20"
             } ${leftIcon ? "pl-10" : "pl-4"} ${
               rightIcon ? "pr-10" : "pr-4"
             } py-2.5 disabled:opacity-40 disabled:cursor-not-allowed ${className}`}

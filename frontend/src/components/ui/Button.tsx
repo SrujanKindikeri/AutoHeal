@@ -9,6 +9,7 @@ export type ButtonVariant =
   | "glass"
   | "subtle"
   | "danger"
+  | "destructive"
   | "ghost";
 
 export type ButtonSize = "sm" | "md" | "lg";
@@ -26,21 +27,23 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-accent-blue hover:bg-accent-blue-hover text-white shadow-lg shadow-blue-500/20 border border-transparent",
   secondary:
-    "bg-surface-elevated hover:bg-surface-elevated/80 text-content-primary border border-border-strong",
+    "bg-surface-primary hover:bg-surface-elevated text-content-primary border border-border-default",
   glass:
     "apple-button text-content-primary backdrop-blur-md shadow-glass",
   subtle:
-    "bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary hover:text-content-primary border border-border-subtle",
+    "bg-black/[0.04] hover:bg-black/[0.08] text-content-secondary hover:text-content-primary border border-border-subtle",
   danger:
-    "bg-accent-coral/90 hover:bg-accent-coral text-white shadow-lg shadow-red-500/20 border border-transparent",
+    "bg-accent-coral hover:bg-accent-coral-hover text-white shadow-lg shadow-red-500/20 border border-transparent",
+  destructive:
+    "bg-accent-coral hover:bg-accent-coral-hover text-white shadow-lg shadow-red-500/20 border border-transparent",
   ghost:
-    "bg-transparent hover:bg-white/[0.06] text-content-secondary hover:text-content-primary border border-transparent",
+    "bg-transparent hover:bg-black/[0.06] text-content-secondary hover:text-content-primary border border-transparent",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-body-sm font-medium rounded-xl gap-1.5",
-  md: "px-4 py-2 text-body-md font-semibold rounded-2xl gap-2",
-  lg: "px-6 py-3 text-body-lg font-semibold rounded-2xl gap-2.5",
+  sm: "px-3 py-1.5 min-h-[44px] text-body-sm font-medium rounded-xl gap-1.5",
+  md: "px-4 py-2 min-h-[44px] text-body-md font-semibold rounded-2xl gap-2",
+  lg: "px-6 py-3 min-h-[44px] text-body-lg font-semibold rounded-2xl gap-2.5",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

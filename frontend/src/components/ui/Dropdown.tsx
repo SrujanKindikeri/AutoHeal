@@ -84,7 +84,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
                     ? "opacity-30 pointer-events-none"
                     : item.danger
                     ? "text-accent-coral hover:bg-accent-coral/15"
-                    : "text-content-secondary hover:text-content-primary hover:bg-white/[0.08]"
+                    : "text-content-secondary hover:text-content-primary hover:bg-black/[0.04]"
                 }`}
               >
                 {item.icon && <span className="w-4 h-4 shrink-0">{item.icon}</span>}

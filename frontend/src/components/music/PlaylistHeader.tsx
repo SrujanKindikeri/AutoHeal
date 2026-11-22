@@ -32,17 +32,17 @@ const visibilityConfig: Record<
   private: {
     icon: <Lock className="w-3.5 h-3.5" />,
     label: "Private",
-    color: "text-white/50",
+    color: "text-content-muted",
   },
   unlisted: {
     icon: <Link2 className="w-3.5 h-3.5" />,
     label: "Unlisted",
-    color: "text-amber-400/80",
+    color: "text-amber-700",
   },
   public: {
     icon: <Globe className="w-3.5 h-3.5" />,
     label: "Public",
-    color: "text-green-400/80",
+    color: "text-emerald-700",
   },
 };
 
@@ -72,7 +72,7 @@ export const PlaylistHeader: React.FC<PlaylistHeaderProps> = ({
   return (
     <div className="flex flex-col sm:flex-row gap-6 items-start">
       {/* Artwork */}
-      <div className="w-40 h-40 rounded-2xl overflow-hidden bg-white/[0.06] flex items-center justify-center shrink-0 shadow-2xl">
+      <div className="w-40 h-40 rounded-2xl overflow-hidden bg-surface-primary flex items-center justify-center shrink-0 shadow-2xl">
         {playlist.artwork_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -81,7 +81,7 @@ export const PlaylistHeader: React.FC<PlaylistHeaderProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <Music2 className="w-16 h-16 text-white/20" />
+          <Music2 className="w-16 h-16 text-content-muted" />
         )}
       </div>
 
@@ -89,23 +89,23 @@ export const PlaylistHeader: React.FC<PlaylistHeaderProps> = ({
       <div className="flex-1 min-w-0 space-y-3">
         {/* Visibility badge */}
         <span
-          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/[0.08] ${vis.color}`}
+          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-surface-primary border border-border-glass ${vis.color}`}
         >
           {vis.icon}
           {vis.label}
         </span>
 
-        <h1 className="text-3xl font-bold text-white leading-tight truncate">
+        <h1 className="text-3xl font-bold text-content-primary leading-tight truncate">
           {playlist.name}
         </h1>
 
         {playlist.description && (
-          <p className="text-sm text-white/50 leading-relaxed line-clamp-2">
+          <p className="text-sm text-content-secondary leading-relaxed line-clamp-2">
             {playlist.description}
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/40">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-content-muted">
           <span>by {playlist.owner_username}</span>
           <span>·</span>
           <span>

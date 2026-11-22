@@ -83,7 +83,7 @@ export function LibraryButton({
       <button
         onClick={handleAdd}
         disabled={loading}
-        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-white/70 hover:text-white text-sm font-medium transition-colors disabled:opacity-40 ${className}`}
+        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-surface-primary hover:bg-surface-primary/70 border border-border-glass text-content-secondary hover:text-content-primary text-sm font-medium transition-colors disabled:opacity-40 ${className}`}
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookmarkPlus className="w-4 h-4" />}
         Add to Library
@@ -93,20 +93,20 @@ export function LibraryButton({
 
   return (
     <div className="relative">
-      <div className="inline-flex rounded-2xl overflow-hidden border border-white/[0.12]">
+      <div className="inline-flex rounded-2xl overflow-hidden border border-border-glass">
         <button
           onClick={() => setShowDropdown((s) => !s)}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 bg-accent-blue/15 hover:bg-accent-blue/25 text-accent-blue text-sm font-medium transition-colors"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookmarkCheck className="w-4 h-4" />}
           <span className="capitalize">{(status ?? "saved").replace(/_/g, " ")}</span>
-          <span className="text-blue-300/50 ml-0.5">▾</span>
+          <span className="text-accent-blue/50 ml-0.5">▾</span>
         </button>
         <button
           onClick={handleRemove}
           disabled={loading}
-          className="px-2 py-2 bg-white/[0.04] hover:bg-red-500/10 text-white/30 hover:text-red-400 transition-colors border-l border-white/[0.1]"
+          className="px-2 py-2 bg-surface-primary hover:bg-accent-coral/10 text-content-muted hover:text-accent-coral transition-colors border-l border-border-glass"
           title="Remove from library"
         >
           ✕
@@ -114,15 +114,15 @@ export function LibraryButton({
       </div>
 
       {showDropdown && (
-        <div className="absolute top-full left-0 mt-1.5 z-30 w-44 bg-[#1e1e22] border border-white/[0.1] rounded-2xl shadow-xl overflow-hidden">
+        <div className="absolute top-full left-0 mt-1.5 z-30 w-44 bg-white border border-border-subtle rounded-2xl shadow-glass-elevated overflow-hidden">
           {statusOptions.map((opt) => (
             <button
               key={opt.value}
               onClick={() => handleStatusChange(opt.value)}
               className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                 status === opt.value
-                  ? "text-blue-300 bg-blue-500/10"
-                  : "text-white/60 hover:text-white hover:bg-white/[0.06]"
+                  ? "text-accent-blue bg-accent-blue/10"
+                  : "text-content-secondary hover:text-content-primary hover:bg-surface-primary"
               }`}
             >
               {opt.label}
@@ -177,8 +177,8 @@ export function FavoriteButton({
       title={favoriteId ? "Remove from favorites" : "Add to favorites"}
       className={`inline-flex items-center justify-center w-9 h-9 rounded-xl transition-colors disabled:opacity-40 ${
         favoriteId
-          ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-          : "bg-white/[0.06] text-white/40 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.08]"
+          ? "bg-accent-coral/15 text-accent-coral hover:bg-accent-coral/25"
+          : "bg-surface-primary text-content-muted hover:text-accent-coral hover:bg-accent-coral/10 border border-border-glass"
       } ${className}`}
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${favoriteId ? "fill-current" : ""}`} />}
@@ -217,8 +217,8 @@ export function FollowArtistButton({
         const follow = await followArtist(artistId);
         setFollowId(follow.id);
       }
-    } catch (err: any) {
-      setError(err.message ?? "Failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed");
     } finally {
       setLoading(false);
     }
@@ -231,8 +231,8 @@ export function FollowArtistButton({
         disabled={loading}
         className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-medium transition-colors disabled:opacity-40 ${
           followId
-            ? "bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
-            : "bg-white/[0.06] border border-white/[0.1] text-white/70 hover:bg-white/[0.1] hover:text-white"
+            ? "bg-accent-blue/15 border border-accent-blue/30 text-accent-blue hover:bg-accent-coral/10 hover:text-accent-coral hover:border-accent-coral/30"
+            : "bg-surface-primary border border-border-glass text-content-secondary hover:bg-surface-primary/70 hover:text-content-primary"
         } ${className}`}
       >
         {loading ? (
@@ -244,7 +244,7 @@ export function FollowArtistButton({
         )}
         {followId ? "Following" : "Follow"}
       </button>
-      {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
+      {error && <p className="text-xs text-accent-coral mt-1">{error}</p>}
     </div>
   );
 }

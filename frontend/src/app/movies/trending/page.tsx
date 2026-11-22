@@ -5,6 +5,7 @@ import { AppShell } from "@/components/navigation/AppShell";
 import { MediaCard } from "@/components/entertainment/MediaCard";
 import { SkeletonCard } from "@/components/entertainment/SkeletonCard";
 import { TMDBAttribution } from "@/components/entertainment/TMDBAttribution";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { getTrendingMovies } from "@/lib/entertainmentApi";
 import type { TMDBMovie } from "@/types/entertainment";
 
@@ -43,7 +44,7 @@ export default function TrendingMoviesPage() {
   return (
     <AppShell>
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-6">
-        <h1 className="text-heading-lg font-bold text-content-primary">Trending Movies</h1>
+        <PageHeader title="Trending Movies" />
 
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">

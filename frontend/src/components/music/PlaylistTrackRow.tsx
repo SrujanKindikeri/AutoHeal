@@ -32,13 +32,13 @@ export const PlaylistTrackRow: React.FC<PlaylistTrackRowProps> = ({
     <div
       className={`group flex items-center gap-3 py-2.5 px-3 rounded-xl transition-colors ${
         isSelected
-          ? "bg-blue-500/10 border border-blue-500/20"
-          : "hover:bg-white/[0.04]"
+          ? "bg-accent-blue/10 border border-accent-blue/20"
+          : "hover:bg-black/[0.04]"
       }`}
     >
       {/* Drag handle */}
       {dragHandle && (
-        <span className="text-white/20 hover:text-white/50 cursor-grab active:cursor-grabbing shrink-0">
+        <span className="text-content-muted hover:text-content-secondary cursor-grab active:cursor-grabbing shrink-0">
           {dragHandle}
         </span>
       )}
@@ -55,12 +55,12 @@ export const PlaylistTrackRow: React.FC<PlaylistTrackRowProps> = ({
       )}
 
       {/* Position number */}
-      <span className="w-6 text-center text-xs text-white/30 shrink-0 tabular-nums">
+      <span className="w-6 text-center text-xs text-content-muted shrink-0 tabular-nums">
         {position + 1}
       </span>
 
       {/* Artwork */}
-      <div className="w-9 h-9 rounded-lg overflow-hidden bg-white/[0.06] flex items-center justify-center shrink-0">
+      <div className="w-9 h-9 rounded-lg overflow-hidden bg-surface-primary flex items-center justify-center shrink-0">
         {track.artwork_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -69,21 +69,21 @@ export const PlaylistTrackRow: React.FC<PlaylistTrackRowProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <Music2 className="w-4 h-4 text-white/30" />
+          <Music2 className="w-4 h-4 text-content-muted" />
         )}
       </div>
 
       {/* Track info */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-white/80 truncate">{track.title}</div>
-        <div className="text-xs text-white/40 truncate">
+        <div className="text-sm text-content-primary truncate">{track.title}</div>
+        <div className="text-xs text-content-secondary truncate">
           {track.artist_name}
           {track.album_name && ` · ${track.album_name}`}
         </div>
       </div>
 
       {/* Duration */}
-      <span className="text-xs text-white/40 tabular-nums shrink-0">
+      <span className="text-xs text-content-muted tabular-nums shrink-0">
         {formatMs(track.duration_ms)}
       </span>
 
@@ -91,7 +91,7 @@ export const PlaylistTrackRow: React.FC<PlaylistTrackRowProps> = ({
       {onRemove && (
         <button
           onClick={onRemove}
-          className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition-all shrink-0"
+          className="opacity-0 group-hover:opacity-100 text-content-muted hover:text-accent-coral transition-all shrink-0"
           aria-label={`Remove ${track.title}`}
         >
           <X className="w-4 h-4" />

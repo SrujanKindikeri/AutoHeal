@@ -74,15 +74,15 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 apple-glass border-b border-white/[0.08] backdrop-blur-2xl">
+    <header className="sticky top-0 z-50 apple-glass border-b border-border-subtle backdrop-blur-2xl">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#2997ff] to-[#bf5af2] flex items-center justify-center shadow-lg shadow-[#2997ff]/20 group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-accent-blue to-accent-purple flex items-center justify-center shadow-lg shadow-accent-blue/20 group-hover:scale-105 transition-transform">
             <Film className="w-5 h-5 text-white" />
           </div>
           <div>
-            <span className="font-semibold text-lg tracking-tight text-white">MovieFlow</span>
+            <span className="font-semibold text-lg tracking-tight text-content-primary">MovieFlow</span>
           </div>
         </Link>
 
@@ -91,7 +91,7 @@ export function Navbar() {
           <Link
             href="/"
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              pathname === "/" ? "bg-white/[0.1] text-white" : "text-white/60 hover:text-white"
+              pathname === "/" ? "bg-surface-primary text-content-primary" : "text-content-secondary hover:text-content-primary"
             }`}
           >
             Home
@@ -99,7 +99,7 @@ export function Navbar() {
           <Link
             href="/movies"
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              pathname?.startsWith("/movies") ? "bg-white/[0.1] text-white" : "text-white/60 hover:text-white"
+              pathname?.startsWith("/movies") ? "bg-surface-primary text-content-primary" : "text-content-secondary hover:text-content-primary"
             }`}
           >
             Movies
@@ -107,7 +107,7 @@ export function Navbar() {
           <Link
             href="/music"
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              pathname?.startsWith("/music") ? "bg-white/[0.1] text-white" : "text-white/60 hover:text-white"
+              pathname?.startsWith("/music") ? "bg-surface-primary text-content-primary" : "text-content-secondary hover:text-content-primary"
             }`}
           >
             Music
@@ -115,7 +115,7 @@ export function Navbar() {
           <Link
             href="/friends"
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              pathname?.startsWith("/friends") ? "bg-white/[0.1] text-white" : "text-white/60 hover:text-white"
+              pathname?.startsWith("/friends") ? "bg-surface-primary text-content-primary" : "text-content-secondary hover:text-content-primary"
             }`}
           >
             Friends
@@ -123,7 +123,7 @@ export function Navbar() {
           <Link
             href="/profile"
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              pathname === "/profile" ? "bg-white/[0.1] text-white" : "text-white/60 hover:text-white"
+              pathname === "/profile" ? "bg-surface-primary text-content-primary" : "text-content-secondary hover:text-content-primary"
             }`}
           >
             Profile
@@ -133,7 +133,7 @@ export function Navbar() {
         {/* Right Actions */}
         <div className="flex items-center gap-3">
           {isLoading ? (
-            <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-surface-primary animate-pulse" />
           ) : isAuthenticated && user ? (
             <div className="flex items-center gap-3">
               {/* Notification Bell */}
@@ -143,23 +143,23 @@ export function Navbar() {
                     setNotifOpen(!notifOpen);
                     setDropdownOpen(false);
                   }}
-                  className="relative p-2 rounded-full apple-button text-white/70 hover:text-white transition-colors"
+                  className="relative p-2 rounded-full apple-button text-content-secondary hover:text-content-primary transition-colors"
                   title="Notifications"
                 >
                   <Bell className="w-4 h-4" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#2997ff] ring-2 ring-[#08080a]" />
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent-blue ring-2 ring-white" />
                   )}
                 </button>
 
                 {notifOpen && (
-                  <div className="absolute right-0 mt-2 w-80 rounded-2xl apple-glass-card shadow-2xl p-3 border border-white/[0.1] z-50 backdrop-blur-2xl space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-                      <div className="text-xs font-semibold text-white flex items-center gap-1.5">
-                        <Bell className="w-3.5 h-3.5 text-[#2997ff]" />
+                  <div className="absolute right-0 mt-2 w-80 rounded-2xl apple-glass-card shadow-2xl p-3 border border-border-subtle z-50 backdrop-blur-2xl space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
+                      <div className="text-xs font-semibold text-content-primary flex items-center gap-1.5">
+                        <Bell className="w-3.5 h-3.5 text-accent-blue" />
                         <span>Notifications</span>
                         {unreadCount > 0 && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-[#2997ff]/20 text-[#2997ff] text-[10px] font-mono">
+                          <span className="px-1.5 py-0.5 rounded-full bg-accent-blue/20 text-accent-blue text-[10px] font-mono">
                             {unreadCount}
                           </span>
                         )}
@@ -167,7 +167,7 @@ export function Navbar() {
                       {unreadCount > 0 && (
                         <button
                           onClick={handleMarkAllRead}
-                          className="text-[10px] text-white/50 hover:text-white"
+                          className="text-[10px] text-content-secondary hover:text-content-primary"
                         >
                           Mark all as read
                         </button>
@@ -176,7 +176,7 @@ export function Navbar() {
 
                     <div className="max-h-64 overflow-y-auto space-y-2">
                       {notifications.length === 0 ? (
-                        <div className="text-center py-6 text-xs text-white/40">
+                        <div className="text-center py-6 text-xs text-content-secondary">
                           No notifications yet
                         </div>
                       ) : (
@@ -185,22 +185,22 @@ export function Navbar() {
                             key={notif.id}
                             className={`p-2.5 rounded-xl border text-left space-y-1 transition-colors ${
                               notif.is_read
-                                ? "bg-white/[0.02] border-white/[0.04] text-white/60"
-                                : "bg-white/[0.06] border-white/[0.08] text-white"
+                                ? "bg-surface-primary/40 border-border-subtle text-content-secondary"
+                                : "bg-surface-primary border-border-glass text-content-primary"
                             }`}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-semibold text-white">{notif.title}</span>
-                              <span className="text-[9px] text-white/30 font-mono">
+                              <span className="text-[11px] font-semibold text-content-primary">{notif.title}</span>
+                              <span className="text-[9px] text-content-muted font-mono">
                                 {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                            <p className="text-[11px] text-white/70">{notif.message}</p>
+                            <p className="text-[11px] text-content-secondary">{notif.message}</p>
                             {notif.verb === 'friend_request_received' && (
                               <Link
                                 href="/friends"
                                 onClick={() => setNotifOpen(false)}
-                                className="inline-block text-[10px] text-[#2997ff] hover:underline font-medium pt-1"
+                                className="inline-block text-[10px] text-accent-blue hover:underline font-medium pt-1"
                               >
                                 View friend request &rarr;
                               </Link>
@@ -220,48 +220,48 @@ export function Navbar() {
                     setDropdownOpen(!dropdownOpen);
                     setNotifOpen(false);
                   }}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-full apple-button text-xs text-white"
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-full apple-button text-xs text-content-primary"
                 >
-                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#2997ff] to-[#bf5af2] flex items-center justify-center text-[11px] font-bold">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-accent-blue to-accent-blue-hover flex items-center justify-center text-[11px] font-bold text-white">
                   {user.username.slice(0, 1).toUpperCase()}
                 </div>
                 <div className="text-left hidden sm:block">
                   <div className="font-semibold leading-none">{user.username}</div>
-                  <div className="text-[10px] text-white/50 font-mono mt-0.5">{user.movieflow_id}</div>
+                  <div className="text-[10px] text-content-muted font-mono mt-0.5">{user.movieflow_id}</div>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-white/50" />
+                <ChevronDown className="w-3.5 h-3.5 text-content-muted" />
               </button>
 
               {dropdownOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-56 rounded-2xl apple-glass-card shadow-2xl p-1.5 border border-white/[0.1] z-50 backdrop-blur-2xl"
+                  className="absolute right-0 mt-2 w-56 rounded-2xl apple-glass-card shadow-2xl p-1.5 border border-border-subtle z-50 backdrop-blur-2xl"
                   onClick={() => setDropdownOpen(false)}
                 >
-                  <div className="p-3 border-b border-white/[0.06] mb-1">
-                    <div className="text-xs font-medium text-white">{user.full_name || user.username}</div>
-                    <div className="text-[11px] font-mono text-[#2997ff] mt-0.5">{user.movieflow_id}</div>
-                    <div className="text-[10px] text-white/40 truncate">{user.email}</div>
+                  <div className="p-3 border-b border-border-subtle mb-1">
+                    <div className="text-xs font-medium text-content-primary">{user.full_name || user.username}</div>
+                    <div className="text-[11px] font-mono text-accent-blue mt-0.5">{user.movieflow_id}</div>
+                    <div className="text-[10px] text-content-muted truncate">{user.email}</div>
                   </div>
 
                   <Link
                     href="/profile"
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-white/80 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition-colors"
                   >
-                    <UserIcon className="w-4 h-4 text-[#2997ff]" />
+                    <UserIcon className="w-4 h-4 text-accent-blue" />
                     <span>My Profile</span>
                   </Link>
 
                   <Link
                     href="/settings/account"
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-white/80 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-content-secondary hover:text-content-primary hover:bg-black/[0.04] transition-colors"
                   >
-                    <Settings className="w-4 h-4 text-[#bf5af2]" />
+                    <Settings className="w-4 h-4 text-accent-purple" />
                     <span>Account Settings</span>
                   </Link>
 
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-accent-coral hover:bg-accent-coral/15 transition-colors text-left"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Sign Out</span>
@@ -274,13 +274,13 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-4 py-1.5 rounded-full text-xs font-medium text-white/80 hover:text-white transition-colors"
+                className="px-4 py-1.5 rounded-full text-xs font-medium text-content-secondary hover:text-content-primary transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-1.5 rounded-full bg-[#2997ff] hover:bg-[#0071e3] text-white text-xs font-semibold shadow-lg shadow-blue-500/20 transition-all"
+                className="px-4 py-1.5 rounded-full bg-accent-blue hover:bg-accent-blue-hover text-white text-xs font-semibold shadow-lg shadow-accent-blue/20 transition-all"
               >
                 Get Started
               </Link>

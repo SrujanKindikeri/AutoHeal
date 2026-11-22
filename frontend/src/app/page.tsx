@@ -232,8 +232,8 @@ export default function HomePage() {
       setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId));
       const updatedFriends = await getFriends();
       setFriends(updatedFriends);
-    } catch (err: any) {
-      toastError(err.message || "Failed to accept request");
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : "Failed to accept request");
     }
   };
 
@@ -242,8 +242,8 @@ export default function HomePage() {
       await rejectFriendRequest(requestId);
       info("Declined friend request");
       setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId));
-    } catch (err: any) {
-      toastError(err.message || "Failed to decline request");
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : "Failed to decline request");
     }
   };
 
@@ -312,8 +312,8 @@ export default function HomePage() {
               className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
             />
 
-            {/* Gradient Mask */}
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-background via-surface-background/60 to-transparent sm:bg-gradient-to-r sm:from-surface-background sm:via-surface-background/70 sm:to-transparent" />
+            {/* Gradient Mask — dark scrim keeps white overlay text legible over the image */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:bg-gradient-to-r sm:from-black/80 sm:via-black/50 sm:to-transparent" />
 
             {/* Content Overlay */}
             <div className="absolute inset-0 p-6 sm:p-12 flex flex-col justify-end max-w-2xl space-y-4 text-left">
@@ -333,7 +333,7 @@ export default function HomePage() {
                 <h2 className="text-display-lg sm:text-display-xl font-black text-white tracking-tight leading-none">
                   Dune: Part Two
                 </h2>
-                <p className="text-body-sm sm:text-body-md text-content-secondary line-clamp-3 leading-relaxed">
+                <p className="text-body-sm sm:text-body-md text-white/80 line-clamp-3 leading-relaxed">
                   Paul Atreides unites with Chani and the Fremen while seeking revenge against the
                   conspirators who destroyed his family. Facing a choice between the love of his
                   life and the fate of the known universe, he endeavors to prevent a terrible
@@ -380,24 +380,87 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 3. Quick Actions: Create Watch or Listening Rooms */}
+        {/* 3. Quick Actions: Movies, Music, Rooms, Friends */}
         <section aria-label="Quick Actions">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <GlassPanel
+              surface="interactive"
+              onClick={() => router.push("/movies")}
+              className="p-5 flex items-center justify-between cursor-pointer group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent-blue/15 text-accent-blue flex items-center justify-center border border-accent-blue/20 shadow-md">
+                  <Film className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-blue transition-colors">
+                    Movies
+                  </div>
+                  <div className="text-caption text-content-muted">
+                    Browse & discover films
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
+            </GlassPanel>
+
+            <GlassPanel
+              surface="interactive"
+              onClick={() => router.push("/music")}
+              className="p-5 flex items-center justify-between cursor-pointer group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent-pink/15 text-accent-pink flex items-center justify-center border border-accent-pink/20 shadow-md">
+                  <Music className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-pink transition-colors">
+                    Music
+                  </div>
+                  <div className="text-caption text-content-muted">
+                    Hi-fi albums & tracks
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
+            </GlassPanel>
+
+            <GlassPanel
+              surface="interactive"
+              onClick={() => router.push("/friends")}
+              className="p-5 flex items-center justify-between cursor-pointer group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent-purple/15 text-accent-purple flex items-center justify-center border border-accent-purple/20 shadow-md">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-purple transition-colors">
+                    Friends
+                  </div>
+                  <div className="text-caption text-content-muted">
+                    Your social network
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
+            </GlassPanel>
+
             <GlassPanel
               surface="interactive"
               onClick={() => handleOpenRoomModal("watch")}
               className="p-5 flex items-center justify-between cursor-pointer group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent-blue/15 text-accent-blue flex items-center justify-center border border-accent-blue/20 shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-accent-gold/15 text-accent-gold flex items-center justify-center border border-accent-gold/20 shadow-md">
                   <Tv className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-blue transition-colors">
-                    Watch Together
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-gold transition-colors">
+                    Watch Room
                   </div>
                   <div className="text-caption text-content-muted">
-                    Sync movies with friends & FaceTime video
+                    Sync movies with friends
                   </div>
                 </div>
               </div>
@@ -410,36 +473,15 @@ export default function HomePage() {
               className="p-5 flex items-center justify-between cursor-pointer group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent-pink/15 text-accent-pink flex items-center justify-center border border-accent-pink/20 shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-accent-emerald/15 text-accent-emerald flex items-center justify-center border border-accent-emerald/20 shadow-md">
                   <Headphones className="w-6 h-6" />
                 </div>
                 <div className="text-left">
-                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-pink transition-colors">
-                    Listen Together
+                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-emerald transition-colors">
+                    Listen Room
                   </div>
                   <div className="text-caption text-content-muted">
-                    Shared queue, lossless audio & voice chat
-                  </div>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-content-muted group-hover:text-content-primary transition-transform group-hover:translate-x-1" />
-            </GlassPanel>
-
-            <GlassPanel
-              surface="interactive"
-              onClick={() => router.push("/friends?tab=search")}
-              className="p-5 flex items-center justify-between cursor-pointer group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent-purple/15 text-accent-purple flex items-center justify-center border border-accent-purple/20 shadow-md">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div className="text-left">
-                  <div className="text-body-md font-bold text-content-primary group-hover:text-accent-purple transition-colors">
-                    Find Friends
-                  </div>
-                  <div className="text-caption text-content-muted">
-                    Discover people by MovieFlow ID or username
+                    Shared queue & voice chat
                   </div>
                 </div>
               </div>
@@ -822,8 +864,8 @@ export default function HomePage() {
                       }}
                       className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${
                         isSelected
-                          ? "bg-accent-blue/15 border-accent-blue/30 text-white"
-                          : "bg-surface-primary border-border-subtle text-content-secondary hover:text-content-primary hover:bg-white/[0.04]"
+                          ? "bg-accent-blue/15 border-accent-blue/30 text-content-primary"
+                          : "bg-surface-primary border-border-subtle text-content-secondary hover:text-content-primary hover:bg-black/[0.04]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">

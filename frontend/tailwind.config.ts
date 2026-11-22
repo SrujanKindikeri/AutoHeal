@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // Class-based dark mode with a class that is never added anywhere in the app,
+  // so no automatic (media-query) dark theme can ever apply. Light-only UI.
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,48 +12,77 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Semantic Apple Cinematic Palette
+        // Semantic Apple palette — white/light theme (direct values so opacity
+        // modifiers like bg-surface-primary/80 keep working in Tailwind v3).
         surface: {
-          background: "#08080a",
-          primary: "#0f0f14",
-          secondary: "#16161f",
-          elevated: "#1e1e2a",
-          glass: "rgba(18, 18, 24, 0.72)",
-          "glass-hover": "rgba(25, 25, 34, 0.85)",
-          "glass-card": "rgba(22, 22, 30, 0.55)",
+          background: "#FFFFFF",
+          card: "#FFFFFF",
+          primary: "#F5F5F7",
+          secondary: "#FAFAFC",
+          elevated: "#F5F5F7",
+          glass: "rgba(255, 255, 255, 0.85)",
+          "glass-hover": "rgba(248, 248, 250, 0.95)",
+          "glass-card": "rgba(255, 255, 255, 0.95)",
         },
         border: {
-          subtle: "rgba(255, 255, 255, 0.06)",
-          glass: "rgba(255, 255, 255, 0.09)",
-          strong: "rgba(255, 255, 255, 0.16)",
-          focus: "#2997ff",
+          default: "#D2D2D7",
+          subtle: "#E8E8ED",
+          glass: "#D2D2D7",
+          "glass-hover": "#B0B0B5",
+          strong: "#B0B0B5",
+          focus: "#2563EB",
         },
         content: {
-          primary: "#f5f5f7",
-          secondary: "rgba(245, 245, 247, 0.75)",
-          muted: "rgba(245, 245, 247, 0.45)",
-          inverse: "#08080a",
+          primary: "#1D1D1F",
+          secondary: "#6E6E73",
+          muted: "#86868B",
+          inverse: "#FFFFFF",
         },
         accent: {
-          blue: "#2997ff",
-          "blue-hover": "#0071e3",
+          blue: "#2563EB",
+          "blue-hover": "#1D4ED8",
           purple: "#bf5af2",
           "purple-hover": "#a838eb",
           pink: "#ff375f",
-          gold: "#ffd60a",
-          emerald: "#30d158",
-          coral: "#ff453a",
+          gold: "#D97706",
+          emerald: "#16A34A",
+          coral: "#dc2626",
+          "coral-hover": "#B91C1C",
         },
-        // MovieFlow Legacy Shorthands
+        // MovieFlow Legacy Shorthands — re-pointed to light values
         mf: {
-          dark: "#08080a",
-          card: "#121217",
-          subtle: "#1c1c24",
-          border: "rgba(255, 255, 255, 0.08)",
-          accent: "#2997ff",
-          "accent-hover": "#0071e3",
+          dark: "#FFFFFF",
+          card: "#FFFFFF",
+          subtle: "#F5F5F7",
+          border: "#D2D2D7",
+          accent: "#2563EB",
+          "accent-hover": "#1D4ED8",
           gold: "#ffd60a",
           purple: "#bf5af2",
+        },
+        // shadcn-style semantic tokens wired to CSS variables (globals.css :root)
+        theme: {
+          background: "var(--background)",
+          "background-secondary": "var(--background-secondary)",
+          "background-tertiary": "var(--background-tertiary)",
+          foreground: "var(--foreground)",
+          "foreground-secondary": "var(--foreground-secondary)",
+          "muted-foreground": "var(--muted-foreground)",
+          card: "var(--card)",
+          "card-foreground": "var(--card-foreground)",
+          popover: "var(--popover)",
+          "popover-foreground": "var(--popover-foreground)",
+          primary: "var(--primary)",
+          "primary-foreground": "var(--primary-foreground)",
+          secondary: "var(--secondary)",
+          "secondary-foreground": "var(--secondary-foreground)",
+          muted: "var(--muted)",
+          accent: "var(--accent)",
+          "accent-foreground": "var(--accent-foreground)",
+          input: "var(--input)",
+          ring: "var(--ring)",
+          sidebar: "var(--sidebar)",
+          "sidebar-foreground": "var(--sidebar-foreground)",
         },
       },
       fontFamily: {
@@ -88,10 +120,11 @@ const config: Config = {
         caption: ["0.6875rem", { lineHeight: "1.4", letterSpacing: "0.02em" }],
       },
       boxShadow: {
-        glass: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
-        "glass-elevated": "0 16px 48px 0 rgba(0, 0, 0, 0.5)",
-        "glow-blue": "0 0 30px -5px rgba(41, 151, 255, 0.35)",
-        "glow-purple": "0 0 30px -5px rgba(191, 90, 242, 0.35)",
+        glass: "0 1px 3px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06)",
+        "glass-elevated":
+          "0 4px 16px rgba(0, 0, 0, 0.12), 0 24px 48px rgba(0, 0, 0, 0.08)",
+        "glow-blue": "0 0 30px -5px rgba(37, 99, 235, 0.25)",
+        "glow-purple": "0 0 30px -5px rgba(191, 90, 242, 0.25)",
       },
       backdropBlur: {
         xs: "2px",

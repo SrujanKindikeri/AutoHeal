@@ -52,10 +52,10 @@ export default function DiscoverPlaylistsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Globe className="w-6 h-6 text-white/40" />
+            <Globe className="w-6 h-6 text-content-muted" />
             <div>
-              <h1 className="text-2xl font-bold text-white">Discover Playlists</h1>
-              <p className="text-sm text-white/40">
+              <h1 className="text-2xl font-bold text-content-primary">Discover Playlists</h1>
+              <p className="text-sm text-content-muted">
                 {totalResults > 0 ? `${totalResults} public playlists` : "Public playlists"}
               </p>
             </div>
@@ -66,7 +66,7 @@ export default function DiscoverPlaylistsPage() {
         </div>
 
         {error && (
-          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="p-4 rounded-2xl bg-accent-coral/10 border border-accent-coral/20 text-accent-coral text-sm">
             {error}
           </div>
         )}
@@ -74,13 +74,13 @@ export default function DiscoverPlaylistsPage() {
         {loading ? (
           <div className="space-y-3">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl bg-white/[0.04] animate-pulse" />
+              <div key={i} className="h-20 rounded-2xl bg-surface-primary/60 animate-pulse" />
             ))}
           </div>
         ) : playlists.length === 0 ? (
           <div className="py-16 text-center space-y-3">
-            <Globe className="w-12 h-12 text-white/20 mx-auto" />
-            <p className="text-white/40">No public playlists yet.</p>
+            <Globe className="w-12 h-12 text-content-muted mx-auto" />
+            <p className="text-content-muted">No public playlists yet.</p>
             <Link href="/playlists/create">
               <Button size="sm" variant="glass">Create the first one</Button>
             </Link>

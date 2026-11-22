@@ -42,7 +42,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   return (
     <div className={`relative inline-block shrink-0 ${className}`}>
       <div
-        className={`${container} overflow-hidden flex items-center justify-center bg-gradient-to-tr from-accent-blue via-accent-purple to-accent-pink shadow-md border border-border-glass select-none`}
+        className={`${container} relative overflow-hidden flex items-center justify-center bg-gradient-to-tr from-accent-blue via-accent-purple to-accent-pink shadow-md border border-border-glass select-none`}
       >
         {src && !imageError ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -53,13 +53,16 @@ export const Avatar: React.FC<AvatarProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className={`${text} text-white font-medium`}>{initials}</span>
+          <>
+            <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
+            <span className={`${text} text-white font-medium relative`}>{initials}</span>
+          </>
         )}
       </div>
 
       {status && (
         <span
-          className={`absolute bottom-0 right-0 ${badge} rounded-full ring-2 ring-surface-background ${
+          className={`absolute bottom-0 right-0 ${badge} rounded-full ring-2 ring-white ${
             status === "online"
               ? "bg-accent-emerald"
               : status === "busy"

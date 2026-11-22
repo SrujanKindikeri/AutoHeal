@@ -68,14 +68,14 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               type="button"
               onClick={onClear}
               aria-label="Clear search query"
-              className="p-1 rounded-full text-content-muted hover:text-content-primary hover:bg-white/[0.08] transition"
+              className="p-1 rounded-full text-content-muted hover:text-content-primary hover:bg-black/[0.06] transition"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
 
           {shortcutHint && !hasValue && (
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-white/[0.06] border border-border-subtle text-[10px] font-mono text-content-muted">
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-surface-primary border border-border-subtle text-[10px] font-mono text-content-muted">
               {shortcutHint}
             </kbd>
           )}

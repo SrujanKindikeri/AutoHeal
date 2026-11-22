@@ -20,17 +20,17 @@ const visibilityConfig: Record<
   private: {
     icon: <Lock className="w-3 h-3" />,
     label: "Private",
-    color: "text-white/40",
+    color: "text-content-muted",
   },
   unlisted: {
     icon: <Link2 className="w-3 h-3" />,
     label: "Unlisted",
-    color: "text-amber-400/70",
+    color: "text-amber-700",
   },
   public: {
     icon: <Globe className="w-3 h-3" />,
     label: "Public",
-    color: "text-green-400/70",
+    color: "text-emerald-700",
   },
 };
 
@@ -51,10 +51,10 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
   return (
     <Link
       href={dest}
-      className="group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+      className="group flex items-center gap-4 p-4 rounded-2xl bg-surface-primary/50 border border-border-subtle hover:bg-surface-primary hover:border-border-strong transition-all duration-200"
     >
       {/* Artwork */}
-      <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/[0.06] flex items-center justify-center shrink-0">
+      <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-primary flex items-center justify-center shrink-0">
         {playlist.artwork_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -63,14 +63,14 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <Music2 className="w-6 h-6 text-white/30" />
+          <Music2 className="w-6 h-6 text-content-muted" />
         )}
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-sm font-medium text-white/90 truncate">
+          <span className="text-sm font-medium text-content-primary truncate">
             {playlist.name}
           </span>
           <span className={`flex items-center gap-1 text-xs ${vis.color} shrink-0`}>
@@ -78,7 +78,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
             <span className="hidden sm:inline">{vis.label}</span>
           </span>
         </div>
-        <div className="text-xs text-white/40 truncate">
+        <div className="text-xs text-content-secondary truncate">
           {playlist.track_count} track{playlist.track_count !== 1 ? "s" : ""}
           {playlist.total_duration_seconds > 0 &&
             ` · ${formatDuration(playlist.total_duration_seconds)}`}

@@ -74,14 +74,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
           <div
             key={t.id}
             role={t.type === "error" ? "alert" : "status"}
-            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl apple-glass-elevated border shadow-glass-elevated animate-slide-up transition-all ${
+            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl bg-white border shadow-glass-elevated animate-slide-up transition-all ${
               t.type === "success"
-                ? "border-accent-emerald/30 text-emerald-200"
+                ? "border-accent-emerald/40"
                 : t.type === "error"
-                ? "border-accent-coral/30 text-rose-200"
+                ? "border-accent-coral/40"
                 : t.type === "warning"
-                ? "border-accent-gold/30 text-amber-200"
-                : "border-accent-blue/30 text-blue-200"
+                ? "border-accent-gold/40"
+                : "border-accent-blue/40"
             }`}
           >
             <span className="shrink-0 mt-0.5">

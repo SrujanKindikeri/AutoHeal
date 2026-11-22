@@ -254,10 +254,10 @@ export default function PlaylistDetailPage() {
     return (
       <AppShell>
         <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
-          <div className="h-40 rounded-2xl bg-white/[0.04] animate-pulse" />
+          <div className="h-40 rounded-2xl bg-surface-primary animate-pulse" />
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-14 rounded-xl bg-white/[0.04] animate-pulse" />
+              <div key={i} className="h-14 rounded-xl bg-surface-primary animate-pulse" />
             ))}
           </div>
         </div>
@@ -269,7 +269,7 @@ export default function PlaylistDetailPage() {
     return (
       <AppShell>
         <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-          <p className="text-red-400">{error ?? "Playlist not found."}</p>
+          <p className="text-accent-coral">{error ?? "Playlist not found."}</p>
           <Link href="/playlists">
             <Button variant="glass">← Back to playlists</Button>
           </Link>
@@ -282,7 +282,7 @@ export default function PlaylistDetailPage() {
     <AppShell>
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-8">
         {/* Breadcrumb */}
-        <Link href="/playlists" className="text-white/40 hover:text-white/70 text-sm transition-colors">
+        <Link href="/playlists" className="text-content-muted hover:text-content-secondary text-sm transition-colors">
           ← Playlists
         </Link>
 
@@ -301,7 +301,7 @@ export default function PlaylistDetailPage() {
         {/* Delete confirmation */}
         {showDeleteConfirm && (
           <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-4">
-            <p className="text-sm text-red-300">Delete &ldquo;{playlist.name}&rdquo;? This cannot be undone.</p>
+            <p className="text-sm text-accent-coral">Delete &ldquo;{playlist.name}&rdquo;? This cannot be undone.</p>
             <div className="flex gap-2 shrink-0">
               <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
               <Button size="sm" variant="glass" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
@@ -321,11 +321,11 @@ export default function PlaylistDetailPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-xs text-white/40">Sort:</label>
+              <label className="text-xs text-content-muted">Sort:</label>
               <select
                 value={sortField}
                 onChange={(e) => setSortField(e.target.value as SortField)}
-                className="text-xs bg-white/[0.06] border border-white/[0.08] text-white/60 rounded-lg px-2 py-1.5 focus:outline-none"
+                className="text-xs bg-surface-primary border border-border-glass text-content-secondary rounded-lg px-2 py-1.5 focus:outline-none focus:border-accent-blue"
               >
                 <option value="position">Order</option>
                 <option value="title">Title</option>
@@ -350,7 +350,7 @@ export default function PlaylistDetailPage() {
         {/* Track listing */}
         {tracks.length === 0 ? (
           <div className="py-16 text-center space-y-3">
-            <p className="text-white/40">This playlist is empty.</p>
+            <p className="text-content-muted">This playlist is empty.</p>
             {canEdit && (
               <Button size="sm" variant="glass" onClick={() => setShowAddTrack(true)}>
                 Add tracks
@@ -423,19 +423,19 @@ export default function PlaylistDetailPage() {
 
         {/* Collaborators */}
         {(isOwner || collaborators.length > 0) && (
-          <section className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+          <section className="bg-surface-primary/50 border border-border-subtle rounded-2xl overflow-hidden">
             <button
               onClick={() => setShowCollaborators((s) => !s)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.03] transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-black/[0.03] transition-colors"
             >
-              <div className="flex items-center gap-2 text-sm font-medium text-white/70">
+              <div className="flex items-center gap-2 text-sm font-medium text-content-secondary">
                 <Users className="w-4 h-4" />
                 Collaborators ({collaborators.length})
               </div>
               {showCollaborators ? (
-                <ChevronUp className="w-4 h-4 text-white/30" />
+                <ChevronUp className="w-4 h-4 text-content-muted" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-white/30" />
+                <ChevronDown className="w-4 h-4 text-content-muted" />
               )}
             </button>
             {showCollaborators && (

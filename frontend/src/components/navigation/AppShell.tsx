@@ -77,7 +77,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-surface-background text-content-primary selection:bg-accent-blue/30 flex">
+    <div
+      className="min-h-screen flex"
+      style={{ background: "var(--background)", color: "var(--foreground)" }}
+    >
         {/* Desktop Sidebar */}
         <DesktopSidebar
           pendingRequestCount={incomingRequests.length}
@@ -132,7 +135,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                       </div>
                     </div>
                   </div>
-                  <span className="flex items-center gap-1.5 text-caption font-semibold text-accent-emerald bg-accent-emerald/10 px-2.5 py-1 rounded-full border border-accent-emerald/20">
+                  <span className="flex items-center gap-1.5 text-caption font-semibold text-emerald-700 bg-accent-emerald/10 px-2.5 py-1 rounded-full border border-accent-emerald/20">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {systemHealth.status.toUpperCase()}
                   </span>
@@ -150,7 +153,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                       </div>
                     </div>
                   </div>
-                  <span className="flex items-center gap-1.5 text-caption font-semibold text-accent-emerald bg-accent-emerald/10 px-2.5 py-1 rounded-full border border-accent-emerald/20">
+                  <span className="flex items-center gap-1.5 text-caption font-semibold text-emerald-700 bg-accent-emerald/10 px-2.5 py-1 rounded-full border border-accent-emerald/20">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {systemHealth.components?.database?.status.toUpperCase() || "UP"}
                   </span>
@@ -168,7 +171,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                       </div>
                     </div>
                   </div>
-                  <span className="flex items-center gap-1.5 text-caption font-semibold text-accent-emerald bg-accent-emerald/10 px-2.5 py-1 rounded-full border border-accent-emerald/20">
+                  <span className="flex items-center gap-1.5 text-caption font-semibold text-emerald-700 bg-accent-emerald/10 px-2.5 py-1 rounded-full border border-accent-emerald/20">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {systemHealth.components?.channels?.status.toUpperCase() || "UP"}
                   </span>

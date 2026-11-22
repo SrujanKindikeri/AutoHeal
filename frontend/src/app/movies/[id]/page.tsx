@@ -113,8 +113,8 @@ export default function MovieDetailPage() {
 
   return (
     <AppShell>
-      {/* Backdrop */}
-      <div className="relative w-full overflow-hidden" style={{ height: "360px" }}>
+      {/* Backdrop — full-width image with a subtle bottom fade to white */}
+      <div className="relative w-full overflow-hidden rounded-b-3xl" style={{ height: "340px" }}>
         {showBackdrop ? (
           <Image
             src={movie.backdrop_url!}
@@ -126,17 +126,28 @@ export default function MovieDetailPage() {
             onError={() => setBackdropError(true)}
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-surface-elevated via-surface-secondary to-surface-primary" />
+          <div className="absolute inset-0 bg-gradient-to-br from-surface-primary via-surface-secondary to-surface-elevated" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08080a] via-[#08080a]/50 to-transparent" />
+        {/* Fade to white page background at the bottom */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-32"
+          style={{ background: "linear-gradient(to bottom, transparent, var(--background))" }}
+        />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 -mt-24 relative z-10 pb-10 space-y-8">
-        {/* Poster + details */}
-        <div className="flex flex-col sm:flex-row gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 -mt-20 relative z-10 pb-10 space-y-8">
+        {/* Poster + details card */}
+        <div
+          className="rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6"
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--border-subtle)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06)",
+          }}
+        >
           {/* Poster */}
           <div className="shrink-0 w-40 sm:w-52">
-            <div className="relative w-full aspect-[2/3] rounded-2xl overflow-hidden border border-border-glass shadow-glass-elevated bg-surface-elevated">
+            <div className="relative w-full aspect-[2/3] rounded-2xl overflow-hidden border border-border-subtle shadow-glass bg-surface-primary">
               {showPoster ? (
                 <Image
                   src={movie.poster_url!}
@@ -157,7 +168,7 @@ export default function MovieDetailPage() {
           </div>
 
           {/* Metadata */}
-          <div className="flex-1 space-y-4 pt-2">
+          <div className="flex-1 space-y-4">
             <h1 className="text-heading-xl sm:text-display-sm font-bold text-content-primary leading-tight">
               {movie.title}
             </h1>
@@ -165,7 +176,7 @@ export default function MovieDetailPage() {
             {/* Meta chips */}
             <div className="flex flex-wrap items-center gap-3 text-body-sm text-content-secondary">
               {movie.vote_average > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-elevated border border-border-glass">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-primary border border-border-subtle">
                   <Star className="w-3.5 h-3.5 text-accent-gold fill-accent-gold" />
                   <span className="font-semibold text-content-primary">
                     {movie.vote_average.toFixed(1)}
@@ -203,7 +214,7 @@ export default function MovieDetailPage() {
                 {movie.genres.map((g) => (
                   <span
                     key={g.id}
-                    className="px-3 py-1 rounded-2xl text-body-sm font-medium bg-surface-elevated border border-border-glass text-content-secondary"
+                    className="px-3 py-1 rounded-2xl text-body-sm font-medium bg-surface-primary border border-border-subtle text-content-secondary"
                   >
                     {g.name}
                   </span>
@@ -227,11 +238,11 @@ export default function MovieDetailPage() {
                 posterPath={movie.poster_path ?? undefined}
               />
 
-              {/* Watch Together — coming soon (no room route yet) */}
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-body-md font-semibold border border-border-glass bg-surface-elevated text-content-muted cursor-not-allowed select-none">
+              {/* Watch Together — coming soon */}
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-body-md font-semibold border border-border-subtle bg-surface-primary text-content-muted cursor-not-allowed select-none">
                 <Users className="w-4 h-4 shrink-0" />
                 Watch Together
-                <span className="ml-1 px-2 py-0.5 rounded-lg bg-surface-primary text-caption text-content-muted border border-border-glass">
+                <span className="ml-1 px-2 py-0.5 rounded-lg bg-surface-secondary text-caption text-content-muted border border-border-subtle">
                   Coming Soon
                 </span>
               </span>
@@ -241,7 +252,7 @@ export default function MovieDetailPage() {
                 <button
                   onClick={handleShare}
                   aria-label="Share this movie"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-body-md font-semibold border border-border-glass bg-surface-elevated text-content-secondary hover:bg-surface-glass hover:text-content-primary transition-all duration-200 active:scale-[0.97]"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-body-md font-semibold border border-border-subtle bg-surface-primary text-content-secondary hover:bg-surface-elevated hover:text-content-primary transition-all duration-200 active:scale-[0.97]"
                 >
                   <Share2 className="w-4 h-4 shrink-0" />
                   Share

@@ -59,7 +59,7 @@ export const PlaylistShareModal: React.FC<PlaylistShareModalProps> = ({
     <Modal isOpen={isOpen} onClose={handleClose} title="Share Playlist" size="sm">
       <div className="space-y-4">
         {visibility === "private" && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 text-sm">
             <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
             <span>
               This playlist is private. Only collaborators can access it via
@@ -70,11 +70,11 @@ export const PlaylistShareModal: React.FC<PlaylistShareModalProps> = ({
         )}
 
         {loading && (
-          <div className="h-10 rounded-xl bg-white/[0.04] animate-pulse" />
+          <div className="h-10 rounded-xl bg-surface-primary animate-pulse" />
         )}
 
         {error && (
-          <p className="text-sm text-red-400">{error}</p>
+          <p className="text-sm text-accent-coral">{error}</p>
         )}
 
         {shareUrl && !loading && (
@@ -82,7 +82,7 @@ export const PlaylistShareModal: React.FC<PlaylistShareModalProps> = ({
             <input
               readOnly
               value={shareUrl}
-              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-white/70 focus:outline-none select-all"
+              className="flex-1 bg-surface-primary border border-border-glass rounded-xl px-3 py-2 text-sm text-content-primary focus:outline-none select-all"
               onClick={(e) => (e.target as HTMLInputElement).select()}
             />
             <Button
@@ -90,7 +90,7 @@ export const PlaylistShareModal: React.FC<PlaylistShareModalProps> = ({
               variant={copied ? "secondary" : "glass"}
               leftIcon={
                 copied ? (
-                  <Check className="w-3.5 h-3.5 text-green-400" />
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )
@@ -102,7 +102,7 @@ export const PlaylistShareModal: React.FC<PlaylistShareModalProps> = ({
           </div>
         )}
 
-        <p className="text-xs text-white/30">
+        <p className="text-xs text-content-muted">
           MovieFlow does not own or control playback of these tracks. Playback
           depends on an authorized provider.
         </p>

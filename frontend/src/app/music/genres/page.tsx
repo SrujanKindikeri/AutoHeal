@@ -68,7 +68,7 @@ function GenresContent() {
               className={`px-4 py-2 rounded-full text-body-sm font-medium transition-all border ${
                 selectedGenre === genre
                   ? "bg-accent-blue text-white border-accent-blue"
-                  : "bg-surface-elevated border-border-glass text-content-secondary hover:text-content-primary hover:bg-surface-glass hover:border-white/20"
+                  : "bg-surface-elevated border-border-glass text-content-secondary hover:text-content-primary hover:bg-surface-glass hover:border-border-strong"
               }`}
             >
               {genre}

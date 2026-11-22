@@ -24,14 +24,14 @@ export interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-white/[0.06] text-content-secondary border-border-subtle",
+  default: "bg-surface-primary text-content-secondary border-border-subtle",
   accent: "bg-accent-blue/15 text-accent-blue border-accent-blue/25",
-  success: "bg-accent-emerald/15 text-accent-emerald border-accent-emerald/25",
-  warning: "bg-accent-gold/15 text-accent-gold border-accent-gold/25",
+  success: "bg-accent-emerald/15 text-emerald-700 border-accent-emerald/25",
+  warning: "bg-accent-gold/15 text-amber-700 border-accent-gold/25",
   danger: "bg-accent-coral/15 text-accent-coral border-accent-coral/25",
   glass: "apple-glass-card text-content-primary border-border-glass",
-  purple: "bg-accent-purple/15 text-accent-purple border-accent-purple/25",
-  gold: "bg-accent-gold/20 text-accent-gold border-accent-gold/30",
+  purple: "bg-accent-purple/15 text-purple-700 border-accent-purple/25",
+  gold: "bg-accent-gold/20 text-amber-700 border-accent-gold/30",
 };
 
 const dotColors: Record<BadgeVariant, string> = {
@@ -40,7 +40,7 @@ const dotColors: Record<BadgeVariant, string> = {
   success: "bg-accent-emerald",
   warning: "bg-accent-gold",
   danger: "bg-accent-coral",
-  glass: "bg-white/80",
+  glass: "bg-content-muted",
   purple: "bg-accent-purple",
   gold: "bg-accent-gold",
 };

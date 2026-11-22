@@ -78,7 +78,7 @@ export default function EditPlaylistPage() {
       <AppShell>
         <div className="max-w-xl mx-auto px-4 py-8 space-y-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-12 rounded-xl bg-white/[0.04] animate-pulse" />
+            <div key={i} className="h-12 rounded-xl bg-surface-primary animate-pulse" />
           ))}
         </div>
       </AppShell>
@@ -89,7 +89,7 @@ export default function EditPlaylistPage() {
     return (
       <AppShell>
         <div className="max-w-xl mx-auto px-4 py-16 text-center">
-          <p className="text-red-400">{error ?? "Playlist not found."}</p>
+          <p className="text-accent-coral">{error ?? "Playlist not found."}</p>
         </div>
       </AppShell>
     );
@@ -130,11 +130,11 @@ export default function EditPlaylistPage() {
         <div className="flex items-center gap-3">
           <Link
             href={`/playlists/${id}`}
-            className="text-white/40 hover:text-white/70 text-sm transition-colors"
+            className="text-content-muted hover:text-content-secondary text-sm transition-colors"
           >
             ← Back
           </Link>
-          <h1 className="text-2xl font-bold text-white">Edit Playlist</h1>
+          <h1 className="text-2xl font-bold text-content-primary">Edit Playlist</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -147,20 +147,20 @@ export default function EditPlaylistPage() {
           />
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-white/60">
+            <label className="block text-sm font-medium text-content-secondary">
               Description
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white/80 placeholder-white/30 focus:outline-none focus:border-white/20 resize-none"
+              className="w-full bg-surface-primary border border-border-glass rounded-xl px-3 py-2.5 text-sm text-content-primary placeholder:text-content-muted focus:outline-none focus:border-accent-blue resize-none"
             />
           </div>
 
           {/* Visibility */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white/60">
+            <label className="block text-sm font-medium text-content-secondary">
               Visibility
             </label>
             <div className="space-y-2">
@@ -171,16 +171,16 @@ export default function EditPlaylistPage() {
                   onClick={() => setVisibility(opt.value)}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
                     visibility === opt.value
-                      ? "border-blue-500/40 bg-blue-500/10"
-                      : "border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06]"
+                      ? "border-accent-blue/30 bg-accent-blue/10"
+                      : "border-border-subtle bg-surface-primary/50 hover:bg-surface-primary"
                   }`}
                 >
-                  <span className={visibility === opt.value ? "text-blue-400" : "text-white/40"}>
+                  <span className={visibility === opt.value ? "text-accent-blue" : "text-content-muted"}>
                     {opt.icon}
                   </span>
                   <div>
-                    <div className="text-sm font-medium text-white/80">{opt.label}</div>
-                    <div className="text-xs text-white/40">{opt.description}</div>
+                    <div className="text-sm font-medium text-content-primary">{opt.label}</div>
+                    <div className="text-xs text-content-muted">{opt.description}</div>
                   </div>
                 </button>
               ))}
@@ -195,7 +195,7 @@ export default function EditPlaylistPage() {
             type="url"
           />
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-accent-coral">{error}</p>}
 
           <div className="flex gap-3 pt-2">
             <Button type="submit" variant="primary" isLoading={saving} className="flex-1">
