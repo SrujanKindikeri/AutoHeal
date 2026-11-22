@@ -99,7 +99,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           className="w-8 h-8 rounded-xl flex items-center justify-center"
           style={{
             background: "linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%)",
-            boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
+            boxShadow: "0 2px 8px color-mix(in srgb, var(--accent-blue) 25%, transparent)",
           }}
         >
           <Film className="w-4 h-4" style={{ color: "var(--background)" }} />
