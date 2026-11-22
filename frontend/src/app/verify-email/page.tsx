@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { verifyEmail, resendVerification } from "@/lib/authApi";
-import { Navbar } from "@/components/navbar";
+import { PublicNavbar } from "@/components/PublicNavbar";
 import {
   CheckCircle2,
   AlertCircle,
@@ -396,7 +396,7 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#1D1D1F]">
-      <Navbar />
+      <PublicNavbar />
       <main className="flex-1 flex items-center justify-center p-6 py-12">
         <Suspense fallback={<div className="text-xs text-[#6E6E73]">Loading verification…</div>}>
           <VerifyEmailContent />

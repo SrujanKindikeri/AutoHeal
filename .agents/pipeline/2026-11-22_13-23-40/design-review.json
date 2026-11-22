@@ -1,0 +1,29 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "summary": "Revision pass: all 16 prior findings are Closed. Reviewing the changes found 1 new MEDIUM (update_or_create host-demotion breaks host-only control, Acceptance 4c) and 2 new NITs (§4.2 omits the Room.playback_provider AddField; §6.5 private-room password wording contradicts itself AND vs OR).",
+  "counts": { "high": 0, "medium": 1, "nit": 2 },
+  "prior_findings_recheck": "All 16 prior findings (1 HIGH, 8 MEDIUM, 7 NIT) are Closed against the revised design and source.",
+  "findings": [
+    {
+      "id": 17,
+      "severity": "MEDIUM",
+      "location": "02-design.md §6.4 (Accept snippet), §7.1 Connect step 5, §6.5 join",
+      "problem": "Django's update_or_create applies defaults to the EXISTING row on update (verified in django/db/models/query.py: 'for k, v in resolve_callables(update_defaults): setattr(obj, k, v)'). The host's RoomParticipant(role=host) row is created at room creation; when the host then connects via the WS consumer (§7.1, required to control playback) or rejoins via REST join (§6.5), an update_or_create whose defaults include role='participant' overwrites the host's role to participant. §6.4 explicitly shows defaults={'role': ROLE_PARTICIPANT, ...}, which an implementer mirrors in §7.1/§6.5. The demoted host is no longer a controller (_is_controller False) and IsHost checks for end/kick fail -> host-only playback control breaks (Acceptance 4c) and the host cannot drive the room.",
+      "fix": "Do NOT put 'role' in the update_or_create defaults; rely on the model default (role='participant') for genuinely new rows so an existing host keeps role='host'. In WS connect and REST join: RoomParticipant.objects.update_or_create(room=room, user=user, defaults={'status': STATUS_JOINED, 'joined_at': now, 'left_at': None, 'connection_status': CONNECTION_CONNECTED, 'last_seen_at': now}). If role must be set explicitly on create, use Django 5.1's create_defaults (applied on create only) for role and defaults (applied on update) for status/connection fields. Update the §6.4 Accept snippet the same way."
+    },
+    {
+      "id": 18,
+      "severity": "NIT",
+      "location": "02-design.md §4.2 (AddField on Room); §4.4; §7.3",
+      "problem": "The current Room model defines playback_provider = CharField(max_length=50, blank=True, default=''), but rooms/migrations/0001_initial.py Room CreateModel does NOT include playback_provider (verified). So makemigrations rooms emits an AddField for Room.playback_provider in 0002 in addition to password_hash. §4.2's AddField-on-Room enumeration lists only password_hash, omitting playback_provider — the column §4.4's personal-content convention and the consumer's resolve-by-provider-slug path depend on. Additive (default=''), so a makemigrations-generated 0002 is data-safe and Acceptance 2/3 still pass, but the enumeration is incomplete (same class as prior Finding 10) and a hand-written 0002 per §4.2 would leave playback_provider unmigrated and fail makemigrations --check.",
+      "fix": "Add to §4.2's AddField-on-Room list: 'playback_provider (models.CharField(max_length=50, blank=True, default=\\'\\') — present in the model, missing from 0001_initial; AddField, data-safe).'"
+    },
+    {
+      "id": 19,
+      "severity": "NIT",
+      "location": "02-design.md §6.5; §11",
+      "problem": "§6.5 says 'If the room has password_hash set, also require a matching password (check_password) — a valid token or a valid password satisfies private access.' The first clause ('also require a matching password') reads as AND (token AND password), contradicting the second clause ('a valid token or a valid password satisfies private access', OR). C4 and the password assumption intend OR (a token OR the password each independently grants access to a password-protected private room), so the 'also require' wording could be implemented as requiring both.",
+      "fix": "State the rule unambiguously: 'If the room has password_hash set, a matching password (check_password) grants access; a valid non-expired pending invitation token OR the correct password independently satisfies private access. No valid token and no valid password -> 403 PRIVATE_ROOM_ACCESS_REQUIRED.' Remove the 'also require' phrasing; update §11's 'both require token/password/membership' to 'token OR password OR membership'."
+    }
+  ]
+}

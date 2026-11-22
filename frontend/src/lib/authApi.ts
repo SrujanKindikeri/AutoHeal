@@ -18,10 +18,21 @@ export async function apiRequest<T = any>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  let response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (networkError: unknown) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("[API] Network error on", endpoint, networkError instanceof Error ? networkError.message : networkError);
+    }
+    const err: any = new Error("Unable to connect to the server. Please check your connection.");
+    err.status = 0;
+    err.data = {};
+    throw err;
+  }
 
   // Handle 401 Unauthorized by attempting to refresh token
   if (response.status === 401 && typeof window !== "undefined") {
@@ -58,15 +69,49 @@ export async function apiRequest<T = any>(
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const errorMsg =
-      data.error ||
-      data.detail ||
-      (typeof data === "object"
-        ? Object.entries(data)
-            .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-            .join(" | ")
-        : "An error occurred");
-    const error: any = new Error(errorMsg);
+    if (process.env.NODE_ENV === "development") {
+      // Log status and non-sensitive response fields — never log passwords or tokens
+      const safeData = { ...data };
+      delete safeData.password;
+      delete safeData.access;
+      delete safeData.refresh;
+      console.error("[API] Error", response.status, endpoint, safeData);
+    }
+
+    // Map status codes to clear user-facing messages
+    let userMessage: string;
+    if (response.status === 401) {
+      userMessage = "Incorrect email/username or password.";
+    } else if (response.status === 403) {
+      if (data?.code === "ACCOUNT_UNVERIFIED") {
+        userMessage = "Your account is not verified. Please check your email.";
+      } else {
+        userMessage = "You do not have permission to perform this action.";
+      }
+    } else if (response.status === 400) {
+      // Use backend message if present, otherwise generic
+      const backendMsg =
+        data.error ||
+        data.detail ||
+        (typeof data === "object" && Object.keys(data).length > 0
+          ? Object.entries(data)
+              .filter(([k]) => k !== "code")
+              .map(([, v]) => (Array.isArray(v) ? v.join(", ") : String(v)))
+              .join(" ")
+          : null);
+      userMessage = backendMsg || "Invalid request. Please check your input.";
+    } else if (response.status === 429) {
+      userMessage = "Too many attempts. Please wait before trying again.";
+    } else if (response.status >= 500) {
+      userMessage = "A server error occurred. Please try again later.";
+    } else {
+      userMessage =
+        data.error ||
+        data.detail ||
+        "An unexpected error occurred. Please try again.";
+    }
+
+    const error: any = new Error(userMessage);
     error.status = response.status;
     error.data = data;
     throw error;

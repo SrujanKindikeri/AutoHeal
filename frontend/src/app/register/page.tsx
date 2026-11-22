@@ -4,7 +4,7 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { registerUser } from "@/lib/authApi";
-import { Navbar } from "@/components/navbar";
+import { PublicNavbar } from "@/components/PublicNavbar";
 import {
   Film,
   Lock,
@@ -328,7 +328,7 @@ function RegisterContent() {
 export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#1D1D1F]">
-      <Navbar />
+      <PublicNavbar />
       <main className="flex-1 flex items-center justify-center p-6 py-12">
         <Suspense fallback={<div className="text-xs text-[#6E6E73]">Loading…</div>}>
           <RegisterContent />
