@@ -68,7 +68,11 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
   return (
     <aside
-      className={`fixed top-0 left-0 bottom-0 w-64 bg-surface-primary/95 border-r border-border-subtle backdrop-blur-2xl z-30 hidden md:flex flex-col justify-between p-4 overflow-y-auto no-scrollbar select-none ${className}`}
+      className={`fixed top-0 left-0 bottom-0 w-64 backdrop-blur-2xl z-30 hidden md:flex flex-col justify-between p-4 overflow-y-auto no-scrollbar select-none ${className}`}
+      style={{
+        background: "var(--surface-glass)",
+        borderRight: "1px solid var(--border-subtle)",
+      }}
     >
       <div className="space-y-6">
         {/* Brand */}

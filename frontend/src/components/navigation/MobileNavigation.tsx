@@ -82,7 +82,12 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       {/* Fixed Bottom Glass Bar */}
       <nav
         aria-label="Mobile Bottom Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden apple-glass-elevated border-t border-border-strong px-3 py-2 flex items-center justify-around select-none backdrop-blur-2xl"
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t px-3 py-2 flex items-center justify-around select-none backdrop-blur-2xl"
+        style={{
+          background: "var(--surface-glass)",
+          borderColor: "var(--border-subtle)",
+          boxShadow: "0 -1px 0 var(--border-subtle), 0 -4px 24px rgba(0,0,0,0.06)",
+        }}
       >
         {navItems.map((item) => {
           const isActive =

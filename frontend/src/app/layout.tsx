@@ -4,7 +4,8 @@ import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "MovieFlow — Watch Together. Listen Together.",
-  description: "A premium Apple-inspired social entertainment platform combining movie streaming, music listening, synchronized watch parties, and FaceTime-style communication.",
+  description:
+    "A premium Apple-inspired social entertainment platform combining movie streaming, music listening, synchronized watch parties, and FaceTime-style communication.",
 };
 
 export default function RootLayout({
@@ -14,10 +15,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-[#1D1D1F] antialiased selection:bg-[#2563EB]/20 selection:text-[#1D1D1F]">
-        <Providers>
-          {children}
-        </Providers>
+      <body
+        className="min-h-screen antialiased"
+        style={{
+          background: "var(--background)",
+          color: "var(--foreground)",
+        }}
+      >
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

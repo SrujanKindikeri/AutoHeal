@@ -16,6 +16,7 @@ import {
   LogOut,
   Sparkles,
   Activity,
+  Film,
 } from "lucide-react";
 
 export interface AppHeaderProps {
@@ -84,8 +85,33 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-30 h-16 bg-surface-background/80 backdrop-blur-2xl border-b border-border-subtle px-4 sm:px-8 flex items-center justify-between gap-4 select-none ${className}`}
+      className={`sticky top-0 z-30 h-16 backdrop-blur-2xl border-b border-border-subtle px-4 sm:px-8 flex items-center justify-between gap-4 select-none ${className}`}
+      style={{ background: "var(--surface-glass)", borderColor: "var(--border-subtle)" }}
     >
+      {/* Logo — visible on mobile only (desktop shows sidebar brand) */}
+      <Link
+        href="/"
+        className="shrink-0 flex items-center gap-2 md:hidden focus:outline-none focus-visible:ring-2"
+        style={{ color: "var(--foreground)" }}
+        aria-label="MovieFlow home"
+      >
+        <span
+          className="w-8 h-8 rounded-xl flex items-center justify-center"
+          style={{
+            background: "linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%)",
+            boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
+          }}
+        >
+          <Film className="w-4 h-4" style={{ color: "var(--background)" }} />
+        </span>
+        <span
+          className="font-bold text-heading-sm tracking-tight"
+          style={{ color: "var(--foreground)" }}
+        >
+          MovieFlow
+        </span>
+      </Link>
+
       {/* Search Input */}
       <form onSubmit={handleSearchSubmit} className="max-w-md w-full">
         <SearchBar

@@ -15,5 +15,7 @@ export * from "./Skeleton";
 export * from "./EmptyState";
 export * from "./MediaCard";
 export * from "./SectionHeader";
+export * from "./PageContainer";
+export * from "./PageHeader";
 export * from "./GlassPanel";
 export * from "./NavigationItem";

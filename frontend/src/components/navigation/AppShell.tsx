@@ -77,7 +77,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-surface-background text-content-primary selection:bg-accent-blue/30 flex">
+    <div
+      className="min-h-screen flex"
+      style={{ background: "var(--background)", color: "var(--foreground)" }}
+    >
         {/* Desktop Sidebar */}
         <DesktopSidebar
           pendingRequestCount={incomingRequests.length}
