@@ -380,3 +380,388 @@ class ArtistFollowDeleteView(APIView):
         follow = get_object_or_404(UserFollow, user=request.user, artist_id=str(artist_id))
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ===========================================================================
+# Personal media uploads — DISTINCT prefix /api/v1/library/uploads/
+# No collision with existing /api/v1/library/movies|music|shows|items routes.
+# ===========================================================================
+
+import os
+import mimetypes
+from django.conf import settings
+from django.http import StreamingHttpResponse, FileResponse, Http404
+from library.models import UserMovie, UserTrack
+from library.content_validation import validate_video_file, validate_audio_file, validate_image_file
+
+# Size limits (configurable via settings, with sensible defaults)
+MOVIE_MAX_SIZE = getattr(settings, 'UPLOAD_MAX_MOVIE_BYTES', 2 * 1024 ** 3)       # 2 GB
+AUDIO_MAX_SIZE = getattr(settings, 'UPLOAD_MAX_AUDIO_BYTES', 200 * 1024 ** 2)     # 200 MB
+IMAGE_MAX_SIZE = getattr(settings, 'UPLOAD_MAX_IMAGE_BYTES', 10 * 1024 ** 2)      # 10 MB
+
+
+def _streaming_response(request, file_obj, content_type_header, file_size):
+    """
+    Return a 206 Partial Content (or 200) response with Range support.
+    Chunk-limited generator: returns exactly (end-start+1) bytes.
+    """
+    range_header = request.META.get('HTTP_RANGE', '').strip()
+    if range_header and range_header.startswith('bytes='):
+        try:
+            range_spec = range_header[6:]
+            start_str, end_str = range_spec.split('-', 1)
+            start = int(start_str) if start_str else 0
+            end = int(end_str) if end_str else file_size - 1
+        except ValueError:
+            start, end = 0, file_size - 1
+    else:
+        start, end = 0, file_size - 1
+
+    end = min(end, file_size - 1)
+    length = end - start + 1
+
+    def _file_iterator(f, offset, chunk_size=65536, bytes_remaining=None):
+        f.seek(offset)
+        sent = 0
+        while bytes_remaining is None or sent < bytes_remaining:
+            to_read = chunk_size if bytes_remaining is None else min(chunk_size, bytes_remaining - sent)
+            data = f.read(to_read)
+            if not data:
+                break
+            sent += len(data)
+            yield data
+
+    response = StreamingHttpResponse(
+        _file_iterator(file_obj, start, bytes_remaining=length),
+        status=206 if range_header else 200,
+        content_type=content_type_header,
+    )
+    response['Content-Length'] = length
+    response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
+    response['Accept-Ranges'] = 'bytes'
+    return response
+
+
+class UploadedMovieListCreateView(APIView):
+    """
+    GET  /api/v1/library/uploads/movies/  – list owner's uploaded movies
+    POST /api/v1/library/uploads/movies/  – upload a new movie
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes_override = None  # DRF MultiPartParser used by default for file uploads
+
+    def get(self, request):
+        movies = UserMovie.objects.filter(owner=request.user)
+        data = [_movie_to_dict(m, request) for m in movies]
+        return Response({'movies': data})
+
+    def post(self, request):
+        movie_file = request.FILES.get('movie_file')
+        if not movie_file:
+            return Response({'error': 'movie_file is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if movie_file.size > MOVIE_MAX_SIZE:
+            return Response({'error': f'File too large. Maximum size is {MOVIE_MAX_SIZE // (1024**2)} MB.'},
+                            status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        valid, err, mime = validate_video_file(movie_file)
+        if not valid:
+            return Response({'error': err}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+        title = request.data.get('title', '').strip()
+        if not title:
+            return Response({'error': 'title is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        movie = UserMovie(
+            owner=request.user,
+            title=title,
+            description=request.data.get('description', ''),
+            genre=request.data.get('genre', ''),
+            detected_content_type=mime or '',
+            file_size=movie_file.size,
+            processing_status=UserMovie.STATUS_READY,
+        )
+        try:
+            release_year = request.data.get('release_year')
+            if release_year:
+                movie.release_year = int(release_year)
+        except (ValueError, TypeError):
+            pass
+
+        # Store sniffed extension on instance for upload_to callable
+        ext = mimetypes.guess_extension(mime) if mime else os.path.splitext(movie_file.name)[1]
+        movie._stored_ext = ext or '.mp4'
+        movie.movie_file.save(f"{movie.id}{movie._stored_ext}", movie_file, save=False)
+
+        # Handle poster
+        poster = request.FILES.get('poster')
+        if poster:
+            if poster.size > IMAGE_MAX_SIZE:
+                return Response({'error': 'Poster image too large.'}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+            img_valid, img_err, img_mime = validate_image_file(poster)
+            if not img_valid:
+                return Response({'error': f'Poster: {img_err}'}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+            img_ext = mimetypes.guess_extension(img_mime) if img_mime else os.path.splitext(poster.name)[1]
+            movie._stored_ext_poster = img_ext or '.jpg'
+            movie.poster.save(f"{movie.id}_poster{movie._stored_ext_poster}", poster, save=False)
+
+        movie.save()
+        return Response(_movie_to_dict(movie, request), status=status.HTTP_201_CREATED)
+
+
+class UploadedMovieDetailView(APIView):
+    """
+    GET    /api/v1/library/uploads/movies/<id>/
+    PATCH  /api/v1/library/uploads/movies/<id>/
+    DELETE /api/v1/library/uploads/movies/<id>/
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def _get(self, request, movie_id):
+        return get_object_or_404(UserMovie, id=movie_id, owner=request.user)
+
+    def get(self, request, movie_id):
+        return Response(_movie_to_dict(self._get(request, movie_id), request))
+
+    def patch(self, request, movie_id):
+        movie = self._get(request, movie_id)
+        for field in ('title', 'description', 'genre', 'release_year'):
+            val = request.data.get(field)
+            if val is not None:
+                setattr(movie, field, val)
+        movie.save()
+        return Response(_movie_to_dict(movie, request))
+
+    def delete(self, request, movie_id):
+        movie = self._get(request, movie_id)
+        # Delete actual files
+        if movie.movie_file:
+            try:
+                movie.movie_file.delete(save=False)
+            except Exception:
+                pass
+        if movie.poster:
+            try:
+                movie.poster.delete(save=False)
+            except Exception:
+                pass
+        movie.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UploadedMovieStreamView(APIView):
+    """
+    GET /api/v1/library/uploads/movies/<id>/stream/
+    Authenticated streaming with Range support.
+    Authorizes owner OR active participant in a room referencing this movie.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, movie_id):
+        try:
+            movie = UserMovie.objects.get(id=movie_id)
+        except UserMovie.DoesNotExist:
+            raise Http404
+
+        # Authorization: owner or room participant
+        if movie.owner != request.user:
+            # Check if user is in a room that references this content
+            from rooms.models import RoomParticipant, Room
+            authorized = RoomParticipant.objects.filter(
+                user=request.user,
+                status=RoomParticipant.STATUS_JOINED,
+                room__content_id=str(movie_id),
+                room__content_type='personal_movie',
+            ).exists()
+            if not authorized:
+                return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not movie.movie_file:
+            return Response({'error': 'File not available.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            file_obj = movie.movie_file.open('rb')
+        except (FileNotFoundError, OSError):
+            return Response({'error': 'File not found on server.'}, status=status.HTTP_404_NOT_FOUND)
+
+        content_type_header = movie.detected_content_type or 'video/mp4'
+        return _streaming_response(request, file_obj, content_type_header, movie.file_size or movie.movie_file.size)
+
+
+class UploadedTrackListCreateView(APIView):
+    """
+    GET  /api/v1/library/uploads/tracks/  – list owner's uploaded tracks
+    POST /api/v1/library/uploads/tracks/  – upload a new audio track
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        tracks = UserTrack.objects.filter(owner=request.user)
+        data = [_track_to_dict(t, request) for t in tracks]
+        return Response({'tracks': data})
+
+    def post(self, request):
+        audio_file = request.FILES.get('audio_file')
+        if not audio_file:
+            return Response({'error': 'audio_file is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if audio_file.size > AUDIO_MAX_SIZE:
+            return Response({'error': f'File too large. Maximum size is {AUDIO_MAX_SIZE // (1024**2)} MB.'},
+                            status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        valid, err, mime = validate_audio_file(audio_file)
+        if not valid:
+            return Response({'error': err}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+        track_name = request.data.get('track_name', '').strip()
+        if not track_name:
+            return Response({'error': 'track_name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        track = UserTrack(
+            owner=request.user,
+            track_name=track_name,
+            artist=request.data.get('artist', ''),
+            album=request.data.get('album', ''),
+            genre=request.data.get('genre', ''),
+            detected_content_type=mime or '',
+            file_size=audio_file.size,
+        )
+        ext = mimetypes.guess_extension(mime) if mime else os.path.splitext(audio_file.name)[1]
+        track._stored_ext = ext or '.mp3'
+        track.audio_file.save(f"{track.id}{track._stored_ext}", audio_file, save=False)
+
+        cover = request.FILES.get('cover_image')
+        if cover:
+            if cover.size > IMAGE_MAX_SIZE:
+                return Response({'error': 'Cover image too large.'}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+            img_valid, img_err, img_mime = validate_image_file(cover)
+            if not img_valid:
+                return Response({'error': f'Cover: {img_err}'}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+            img_ext = mimetypes.guess_extension(img_mime) if img_mime else os.path.splitext(cover.name)[1]
+            track._stored_ext_cover = img_ext or '.jpg'
+            track.cover_image.save(f"{track.id}_cover{track._stored_ext_cover}", cover, save=False)
+
+        track.save()
+        return Response(_track_to_dict(track, request), status=status.HTTP_201_CREATED)
+
+
+class UploadedTrackDetailView(APIView):
+    """
+    GET    /api/v1/library/uploads/tracks/<id>/
+    PATCH  /api/v1/library/uploads/tracks/<id>/
+    DELETE /api/v1/library/uploads/tracks/<id>/
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def _get(self, request, track_id):
+        return get_object_or_404(UserTrack, id=track_id, owner=request.user)
+
+    def get(self, request, track_id):
+        return Response(_track_to_dict(self._get(request, track_id), request))
+
+    def patch(self, request, track_id):
+        track = self._get(request, track_id)
+        for field in ('track_name', 'artist', 'album', 'genre'):
+            val = request.data.get(field)
+            if val is not None:
+                setattr(track, field, val)
+        track.save()
+        return Response(_track_to_dict(track, request))
+
+    def delete(self, request, track_id):
+        track = self._get(request, track_id)
+        if track.audio_file:
+            try:
+                track.audio_file.delete(save=False)
+            except Exception:
+                pass
+        if track.cover_image:
+            try:
+                track.cover_image.delete(save=False)
+            except Exception:
+                pass
+        track.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UploadedTrackStreamView(APIView):
+    """
+    GET /api/v1/library/uploads/tracks/<id>/stream/
+    Authenticated streaming with Range support.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, track_id):
+        try:
+            track = UserTrack.objects.get(id=track_id)
+        except UserTrack.DoesNotExist:
+            raise Http404
+
+        if track.owner != request.user:
+            from rooms.models import RoomParticipant
+            authorized = RoomParticipant.objects.filter(
+                user=request.user,
+                status=RoomParticipant.STATUS_JOINED,
+                room__content_id=str(track_id),
+                room__content_type='personal_track',
+            ).exists()
+            if not authorized:
+                return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not track.audio_file:
+            return Response({'error': 'File not available.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            file_obj = track.audio_file.open('rb')
+        except (FileNotFoundError, OSError):
+            return Response({'error': 'File not found on server.'}, status=status.HTTP_404_NOT_FOUND)
+
+        content_type_header = track.detected_content_type or 'audio/mpeg'
+        return _streaming_response(request, file_obj, content_type_header, track.file_size or track.audio_file.size)
+
+
+def _movie_to_dict(movie, request):
+    poster_url = None
+    if movie.poster:
+        try:
+            poster_url = request.build_absolute_uri(movie.poster.url)
+        except Exception:
+            pass
+    return {
+        'id': str(movie.id),
+        'title': movie.title,
+        'description': movie.description,
+        'genre': movie.genre,
+        'release_year': movie.release_year,
+        'file_size': movie.file_size,
+        'detected_content_type': movie.detected_content_type,
+        'processing_status': movie.processing_status,
+        'poster_url': poster_url,
+        'stream_url': request.build_absolute_uri(f'/api/v1/library/uploads/movies/{movie.id}/stream/'),
+        'created_at': movie.created_at.isoformat(),
+        'updated_at': movie.updated_at.isoformat(),
+    }
+
+
+def _track_to_dict(track, request):
+    cover_url = None
+    if track.cover_image:
+        try:
+            cover_url = request.build_absolute_uri(track.cover_image.url)
+        except Exception:
+            pass
+    return {
+        'id': str(track.id),
+        'track_name': track.track_name,
+        'artist': track.artist,
+        'album': track.album,
+        'genre': track.genre,
+        'file_size': track.file_size,
+        'detected_content_type': track.detected_content_type,
+        'duration_seconds': track.duration_seconds,
+        'cover_url': cover_url,
+        'stream_url': request.build_absolute_uri(f'/api/v1/library/uploads/tracks/{track.id}/stream/'),
+        'created_at': track.created_at.isoformat(),
+        'updated_at': track.updated_at.isoformat(),
+    }
+

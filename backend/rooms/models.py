@@ -78,6 +78,8 @@ class Room(models.Model):
         db_index=True
     )
     max_participants = models.PositiveIntegerField(default=10)
+    # Optional room password (bcrypt hash stored; plain text never persisted)
+    password_hash = models.CharField(max_length=255, blank=True, default='')
 
     scheduled_start_time = models.DateTimeField(null=True, blank=True, db_index=True)
     actual_start_time = models.DateTimeField(null=True, blank=True)

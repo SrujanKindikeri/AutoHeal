@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/v1/', include('rooms.urls')),
     path('api/v1/', include('music.urls')),
     path('api/v1/', include('library.urls')),
+    path('api/v1/', include('playback.urls')),
     path('api/core/', include('core.urls')),
     path('api/health/', include('core.urls')),  # convenient root health endpoint
 ]

@@ -205,3 +205,115 @@ class UserFollow(models.Model):
 
     def __str__(self):
         return f'{self.user} follows artist:{self.artist_id}'
+
+
+# ---------------------------------------------------------------------------
+# Personal media uploads
+# ---------------------------------------------------------------------------
+
+class UserMovie(models.Model):
+    """A movie file uploaded by the user from their own legally-owned media."""
+    GENRE_CHOICES = [
+        ('action', 'Action'), ('comedy', 'Comedy'), ('drama', 'Drama'),
+        ('horror', 'Horror'), ('sci_fi', 'Sci-Fi'), ('romance', 'Romance'),
+        ('documentary', 'Documentary'), ('animation', 'Animation'),
+        ('thriller', 'Thriller'), ('fantasy', 'Fantasy'), ('other', 'Other'),
+    ]
+    STATUS_PROCESSING = 'processing'
+    STATUS_READY = 'ready'
+    STATUS_ERROR = 'error'
+    STATUS_CHOICES = [
+        (STATUS_PROCESSING, 'Processing'),
+        (STATUS_READY, 'Ready'),
+        (STATUS_ERROR, 'Error'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='uploaded_movies',
+    )
+    title = models.CharField(max_length=500)
+    description = models.TextField(blank=True, default='')
+    genre = models.CharField(max_length=30, choices=GENRE_CHOICES, blank=True, default='')
+    release_year = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Files — stored under MEDIA_ROOT via uuid upload paths; never public MEDIA_URL
+    movie_file = models.FileField(upload_to='uploads/movies/', max_length=500)
+    poster = models.ImageField(upload_to='uploads/movie_posters/', max_length=500, null=True, blank=True)
+    # Metadata set by the view after validation
+    file_size = models.BigIntegerField(default=0, help_text='File size in bytes')
+    detected_content_type = models.CharField(max_length=100, blank=True, default='')
+    # Processing status
+    processing_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_READY)
+    processing_error = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'library_user_movies'
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['owner'])]
+
+    def __str__(self):
+        return f'{self.owner} – {self.title}'
+
+
+class UserTrack(models.Model):
+    """An audio file uploaded by the user from their own legally-owned media."""
+    GENRE_CHOICES = [
+        ('pop', 'Pop'), ('rock', 'Rock'), ('hip_hop', 'Hip-Hop'), ('jazz', 'Jazz'),
+        ('classical', 'Classical'), ('electronic', 'Electronic'), ('r_and_b', 'R&B'),
+        ('country', 'Country'), ('indie', 'Indie'), ('metal', 'Metal'), ('other', 'Other'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='uploaded_tracks',
+    )
+    track_name = models.CharField(max_length=500)
+    artist = models.CharField(max_length=255, blank=True, default='')
+    album = models.CharField(max_length=255, blank=True, default='')
+    genre = models.CharField(max_length=30, choices=GENRE_CHOICES, blank=True, default='')
+    # Files
+    audio_file = models.FileField(upload_to='uploads/tracks/', max_length=500)
+    cover_image = models.ImageField(upload_to='uploads/track_covers/', max_length=500, null=True, blank=True)
+    # Metadata
+    file_size = models.BigIntegerField(default=0)
+    detected_content_type = models.CharField(max_length=100, blank=True, default='')
+    duration_seconds = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'library_user_tracks'
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['owner'])]
+
+    def __str__(self):
+        return f'{self.owner} – {self.track_name}'
+
+
+class UserTrackPlaylistItem(models.Model):
+    """
+    Links a UserTrack into a music.Playlist by playlist_id (string FK to avoid
+    a hard cross-app FK while keeping library decoupled from music app).
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    track = models.ForeignKey(UserTrack, on_delete=models.CASCADE, related_name='playlist_items')
+    playlist_id = models.CharField(max_length=36, db_index=True,
+                                   help_text='UUID of music.Playlist')
+    position = models.PositiveIntegerField(default=0)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'library_user_track_playlist_items'
+        ordering = ['position', 'added_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['track', 'playlist_id'],
+                name='unique_track_in_playlist',
+            )
+        ]
