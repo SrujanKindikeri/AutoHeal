@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Film } from "lucide-react";
 import { AppShell } from "@/components/navigation/AppShell";
 import {
   MediaHero,
@@ -8,7 +9,7 @@ import {
   GenreChips,
   TMDBAttribution,
 } from "@/components/entertainment";
-import { SkeletonCard } from "@/components/entertainment/SkeletonCard";
+import { PageHeader } from "@/components/ui/PageHeader";
 import {
   getTrendingMovies,
   getPopularMovies,
@@ -69,6 +70,11 @@ export default function MoviesPage() {
   return (
     <AppShell>
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-10">
+        <PageHeader
+          title="Movies"
+          description="Discover trending, popular, and top-rated films."
+          icon={<Film className="w-5 h-5 text-accent-blue" />}
+        />
         {/* Hero */}
         {loading ? (
           <div className="w-full rounded-3xl bg-surface-elevated animate-pulse" style={{ minHeight: "420px" }} />
