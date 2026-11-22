@@ -62,12 +62,33 @@ class PublicUserSerializer(serializers.ModelSerializer):
     """
     Publicly visible user card.
     Strictly excludes email, internal timestamps, or private fields.
+    Guards against users who have no profile record (profile is None).
     """
-    avatar_url = serializers.CharField(source='profile.avatar_url', read_only=True)
-    bio = serializers.CharField(source='profile.bio', read_only=True)
-    preferred_movie_genres = serializers.JSONField(source='profile.preferred_movie_genres', read_only=True)
-    preferred_music_genres = serializers.JSONField(source='profile.preferred_music_genres', read_only=True)
-    is_profile_completed = serializers.BooleanField(source='profile.is_profile_completed', read_only=True)
+    avatar_url = serializers.SerializerMethodField()
+    bio = serializers.SerializerMethodField()
+    preferred_movie_genres = serializers.SerializerMethodField()
+    preferred_music_genres = serializers.SerializerMethodField()
+    is_profile_completed = serializers.SerializerMethodField()
+
+    def get_avatar_url(self, obj) -> str:
+        profile = getattr(obj, 'profile', None)
+        return getattr(profile, 'avatar_url', '') or ''
+
+    def get_bio(self, obj) -> str:
+        profile = getattr(obj, 'profile', None)
+        return getattr(profile, 'bio', '') or ''
+
+    def get_preferred_movie_genres(self, obj) -> list:
+        profile = getattr(obj, 'profile', None)
+        return getattr(profile, 'preferred_movie_genres', []) or []
+
+    def get_preferred_music_genres(self, obj) -> list:
+        profile = getattr(obj, 'profile', None)
+        return getattr(profile, 'preferred_music_genres', []) or []
+
+    def get_is_profile_completed(self, obj) -> bool:
+        profile = getattr(obj, 'profile', None)
+        return getattr(profile, 'is_profile_completed', False) or False
 
     class Meta:
         model = User

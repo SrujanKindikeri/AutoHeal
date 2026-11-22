@@ -5,18 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { getFriends, getIncomingRequests, acceptFriendRequest, rejectFriendRequest } from "@/lib/socialApi";
+import { getTrendingMovies, getTrendingTV } from "@/lib/entertainmentApi";
+import { createRoom, inviteToRoom } from "@/lib/roomApi";
 import { Friendship, FriendRequest } from "@/types/social";
+import { TMDBMovie, TMDBTVShow } from "@/types/entertainment";
 import { AppShell } from "@/components/navigation/AppShell";
 import {
   Button,
-  IconButton,
   MediaCard,
   SectionHeader,
   GlassPanel,
   EmptyState,
   Badge,
   Avatar,
-  AvatarGroup,
   Modal,
   useToast,
 } from "@/components/ui";
@@ -26,8 +27,6 @@ import {
   Video,
   Radio,
   Users,
-  Play,
-  Plus,
   Check,
   Sparkles,
   Clock,
@@ -35,159 +34,29 @@ import {
   ShieldCheck,
   Tv,
   Headphones,
-  UserPlus,
-  Copy,
 } from "lucide-react";
-
-// Curated Entertainment Catalog Data for Discovery
-const POPULAR_MOVIES = [
-  {
-    id: "m-1",
-    title: "Dune: Part Two",
-    subtitle: "Denis Villeneuve",
-    year: "2024",
-    duration: "2h 46m",
-    artworkUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop",
-    type: "movie" as const,
-    aspectRatio: "poster" as const,
-    badges: ["4K HDR", "Spatial Audio"],
-  },
-  {
-    id: "m-2",
-    title: "Oppenheimer",
-    subtitle: "Christopher Nolan",
-    year: "2023",
-    duration: "3h 00m",
-    artworkUrl: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=800&auto=format&fit=crop",
-    type: "movie" as const,
-    aspectRatio: "poster" as const,
-    badges: ["IMAX", "Dolby Atmos"],
-  },
-  {
-    id: "m-3",
-    title: "Interstellar",
-    subtitle: "Christopher Nolan",
-    year: "2014",
-    duration: "2h 49m",
-    artworkUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop",
-    type: "movie" as const,
-    aspectRatio: "poster" as const,
-    badges: ["4K HDR", "Spatial Audio"],
-  },
-  {
-    id: "m-4",
-    title: "Blade Runner 2049",
-    subtitle: "Denis Villeneuve",
-    year: "2017",
-    duration: "2h 44m",
-    artworkUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop",
-    type: "movie" as const,
-    aspectRatio: "poster" as const,
-    badges: ["4K", "Dolby Vision"],
-  },
-];
-
-const POPULAR_SHOWS = [
-  {
-    id: "s-1",
-    title: "Severance",
-    subtitle: "Season 2",
-    year: "2024",
-    duration: "10 Episodes",
-    artworkUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop",
-    type: "show" as const,
-    aspectRatio: "backdrop" as const,
-    badges: ["Apple Original", "4K HDR"],
-  },
-  {
-    id: "s-2",
-    title: "Foundation",
-    subtitle: "Season 2",
-    year: "2023",
-    duration: "10 Episodes",
-    artworkUrl: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=800&auto=format&fit=crop",
-    type: "show" as const,
-    aspectRatio: "backdrop" as const,
-    badges: ["Sci-Fi", "Spatial Audio"],
-  },
-  {
-    id: "s-3",
-    title: "The Last of Us",
-    subtitle: "Season 1",
-    year: "2023",
-    duration: "9 Episodes",
-    artworkUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop",
-    type: "show" as const,
-    aspectRatio: "backdrop" as const,
-    badges: ["Drama", "4K"],
-  },
-];
-
-const MUSIC_RECOMMENDATIONS = [
-  {
-    id: "a-1",
-    title: "After Hours",
-    subtitle: "The Weeknd",
-    year: "2020",
-    duration: "14 Songs",
-    artworkUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800&auto=format&fit=crop",
-    type: "music" as const,
-    aspectRatio: "square" as const,
-    badges: ["Lossless", "Dolby Atmos"],
-  },
-  {
-    id: "a-2",
-    title: "Random Access Memories",
-    subtitle: "Daft Punk",
-    year: "2013",
-    duration: "13 Songs",
-    artworkUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop",
-    type: "music" as const,
-    aspectRatio: "square" as const,
-    badges: ["Hi-Res", "Spatial Audio"],
-  },
-  {
-    id: "a-3",
-    title: "Blonde",
-    subtitle: "Frank Ocean",
-    year: "2016",
-    duration: "17 Songs",
-    artworkUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=800&auto=format&fit=crop",
-    type: "music" as const,
-    aspectRatio: "square" as const,
-    badges: ["Contemporary", "Lossless"],
-  },
-  {
-    id: "a-4",
-    title: "Currents",
-    subtitle: "Tame Impala",
-    year: "2015",
-    duration: "13 Songs",
-    artworkUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop",
-    type: "music" as const,
-    aspectRatio: "square" as const,
-    badges: ["Psychedelic", "Spatial"],
-  },
-];
 
 export default function HomePage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const { success, error: toastError, info } = useToast();
 
-  // Social data from Phase 3 backend
+  // Social data
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
   const [loadingSocial, setLoadingSocial] = useState(false);
+
+  // Entertainment data from real backend APIs
+  const [trendingMovies, setTrendingMovies] = useState<TMDBMovie[]>([]);
+  const [trendingShows, setTrendingShows] = useState<TMDBTVShow[]>([]);
+  const [loadingMovies, setLoadingMovies] = useState(false);
+  const [loadingShows, setLoadingShows] = useState(false);
 
   // Room creation modal
   const [roomModalOpen, setRoomModalOpen] = useState(false);
   const [roomType, setRoomType] = useState<"watch" | "listen">("watch");
   const [roomName, setRoomName] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
-
-  // Watchlist tracker
-  const [watchlist, setWatchlist] = useState<Record<string, boolean>>({});
 
   // Dynamic time-of-day greeting
   const [greeting, setGreeting] = useState("Welcome");
@@ -215,15 +84,20 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
-  const handleToggleWatchlist = (mediaId: string, title: string) => {
-    const nextState = !watchlist[mediaId];
-    setWatchlist((prev) => ({ ...prev, [mediaId]: nextState }));
-    if (nextState) {
-      success(`Added "${title}" to your Watchlist`);
-    } else {
-      info(`Removed "${title}" from Watchlist`);
-    }
-  };
+  // Fetch trending movies and TV from real backend (TMDB-backed)
+  useEffect(() => {
+    setLoadingMovies(true);
+    getTrendingMovies(1)
+      .then((res) => setTrendingMovies(res.results.slice(0, 4)))
+      .catch(() => setTrendingMovies([]))
+      .finally(() => setLoadingMovies(false));
+
+    setLoadingShows(true);
+    getTrendingTV(1)
+      .then((res) => setTrendingShows(res.results.slice(0, 3)))
+      .catch(() => setTrendingShows([]))
+      .finally(() => setLoadingShows(false));
+  }, []);
 
   const handleAcceptRequest = async (requestId: string, senderName: string) => {
     try {
@@ -253,14 +127,35 @@ export default function HomePage() {
     setRoomModalOpen(true);
   };
 
-  const handleCreateRoomSubmit = (e: React.FormEvent) => {
+  // Create a real Watch/Listen room via the backend rooms API and invite the
+  // selected friends. Replaces the previous placeholder success toast with a
+  // real backend action (Phase 2 items 11-12 + Phase 6 "no fake success").
+  const handleCreateRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRoomModalOpen(false);
-    success(
-      `Created ${roomType === "watch" ? "Watch Room" : "Listening Room"} "${roomName}" with ${
-        selectedFriends.length
-      } invited friend(s)!`
-    );
+    try {
+      const room = await createRoom({
+        name: roomName,
+        roomType: roomType === "watch" ? "movie" : "music",
+      });
+      let invited = 0;
+      for (const friendId of selectedFriends) {
+        try {
+          await inviteToRoom(room.id, friendId);
+          invited += 1;
+        } catch {
+          // A single failed invitation should not block the room creation.
+        }
+      }
+      setRoomModalOpen(false);
+      setSelectedFriends([]);
+      success(
+        `Created ${roomType === "watch" ? "Watch Room" : "Listening Room"} "${room.name}"${
+          invited > 0 ? ` and invited ${invited} friend(s)` : ""
+        }!`
+      );
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : "Failed to create room");
+    }
   };
 
   return (
@@ -301,86 +196,7 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* 2. Featured Entertainment Showcase (Apple TV Style Cinematic Hero) */}
-        <section aria-label="Featured Feature" className="relative">
-          <div className="relative w-full h-[400px] sm:h-[480px] rounded-3xl overflow-hidden border border-border-glass shadow-glass-elevated group">
-            {/* Background Artwork */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1600&auto=format&fit=crop"
-              alt="Dune: Part Two Featured Spotlight"
-              className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-
-            {/* Gradient Mask — dark scrim keeps white overlay text legible over the image */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:bg-gradient-to-r sm:from-black/80 sm:via-black/50 sm:to-transparent" />
-
-            {/* Content Overlay */}
-            <div className="absolute inset-0 p-6 sm:p-12 flex flex-col justify-end max-w-2xl space-y-4 text-left">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="accent" size="sm">
-                  Apple TV Spotlight
-                </Badge>
-                <Badge variant="glass" size="sm">
-                  4K HDR
-                </Badge>
-                <Badge variant="glass" size="sm">
-                  Spatial Audio
-                </Badge>
-              </div>
-
-              <div className="space-y-2">
-                <h2 className="text-display-lg sm:text-display-xl font-black text-white tracking-tight leading-none">
-                  Dune: Part Two
-                </h2>
-                <p className="text-body-sm sm:text-body-md text-white/80 line-clamp-3 leading-relaxed">
-                  Paul Atreides unites with Chani and the Fremen while seeking revenge against the
-                  conspirators who destroyed his family. Facing a choice between the love of his
-                  life and the fate of the known universe, he endeavors to prevent a terrible
-                  future.
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  leftIcon={<Video className="w-5 h-5" />}
-                  onClick={() => handleOpenRoomModal("watch")}
-                >
-                  Start Watch Party
-                </Button>
-
-                <Button
-                  variant="glass"
-                  size="lg"
-                  leftIcon={<Play className="w-4 h-4 fill-current" />}
-                  onClick={() => info("Playing trailer for Dune: Part Two")}
-                >
-                  Trailer
-                </Button>
-
-                <Button
-                  variant="subtle"
-                  size="lg"
-                  leftIcon={
-                    watchlist["m-1"] ? (
-                      <Check className="w-4 h-4 text-accent-emerald" />
-                    ) : (
-                      <Plus className="w-4 h-4" />
-                    )
-                  }
-                  onClick={() => handleToggleWatchlist("m-1", "Dune: Part Two")}
-                >
-                  {watchlist["m-1"] ? "In Watchlist" : "Add to Watchlist"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. Quick Actions: Movies, Music, Rooms, Friends */}
+        {/* 2. Quick Actions: Movies, Music, Rooms, Friends */}
         <section aria-label="Quick Actions">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <GlassPanel
@@ -490,7 +306,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 4. Friends & Social Activity Widget (Real Phase 3 Data) */}
+        {/* 3. Friends & Social Activity Widget (Real Data) */}
         {isAuthenticated && (
           <section aria-label="Friends & Social Network" className="space-y-4">
             <SectionHeader
@@ -565,7 +381,7 @@ export default function HomePage() {
               </GlassPanel>
             )}
 
-            {/* Friends List or Real Empty State */}
+            {/* Friends List or Empty State */}
             {friends.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {friends.slice(0, 4).map((f) => (
@@ -617,32 +433,11 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* 5. Continue Watching Section (Real Empty State when user has no watch history) */}
-        <section aria-label="Continue Watching" className="space-y-4">
+        {/* 4. Trending Movies (Real TMDB data from backend) */}
+        <section id="trending-movies" aria-label="Trending Movies" className="space-y-4">
           <SectionHeader
-            title="Continue Watching"
-            subtitle="Pick up where you left off"
-            icon={<Play className="w-5 h-5 fill-current" />}
-          />
-          <EmptyState
-            icon={<Film className="w-7 h-7 text-accent-blue" />}
-            title="No in-progress movies or shows"
-            description="Titles you start watching will appear here so you can easily resume playback anytime."
-            action={{
-              label: "Explore Popular Movies",
-              onClick: () => {
-                const el = document.getElementById("popular-movies");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              },
-            }}
-          />
-        </section>
-
-        {/* 6. Popular Movies (Curated High-Res Media Cards) */}
-        <section id="popular-movies" aria-label="Popular Movies" className="space-y-4">
-          <SectionHeader
-            title="Popular Movies"
-            subtitle="Trending cinematic features available for synchronized viewing"
+            title="Trending Movies"
+            subtitle="What's popular right now — start a Watch Together party"
             icon={<Film className="w-5 h-5" />}
             action={{
               label: "See All",
@@ -650,28 +445,44 @@ export default function HomePage() {
             }}
           />
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-            {POPULAR_MOVIES.map((movie) => (
-              <MediaCard
-                key={movie.id}
-                id={movie.id}
-                title={movie.title}
-                subtitle={movie.subtitle}
-                year={movie.year}
-                duration={movie.duration}
-                artworkUrl={movie.artworkUrl}
-                aspectRatio={movie.aspectRatio}
-                badges={movie.badges}
-                isInWatchlist={Boolean(watchlist[movie.id])}
-                onPlay={() => handleOpenRoomModal("watch")}
-                onToggleWatchlist={() => handleToggleWatchlist(movie.id, movie.title)}
-              />
-            ))}
-          </div>
+          {loadingMovies ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-3xl bg-surface-primary/60 border border-border-subtle animate-pulse aspect-[2/3]"
+                />
+              ))}
+            </div>
+          ) : trendingMovies.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+              {trendingMovies.map((movie) => (
+                <MediaCard
+                  key={movie.id}
+                  id={String(movie.id)}
+                  title={movie.title}
+                  subtitle={new Date(movie.release_date || "").getFullYear().toString() || ""}
+                  artworkUrl={movie.poster_url || movie.backdrop_url || ""}
+                  aspectRatio="poster"
+                  onPlay={() => handleOpenRoomModal("watch")}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={<Film className="w-7 h-7 text-accent-blue" />}
+              title="No movies available"
+              description="Browse or upload movies to get started."
+              action={{
+                label: "Browse Movies",
+                onClick: () => router.push("/movies"),
+              }}
+            />
+          )}
         </section>
 
-        {/* 7. Popular Shows Section */}
-        <section aria-label="Popular Shows" className="space-y-4">
+        {/* 5. Trending Series (Real TMDB data from backend) */}
+        <section aria-label="Trending Series" className="space-y-4">
           <SectionHeader
             title="Trending Series"
             subtitle="Binge together in synchronized group watch rooms"
@@ -682,81 +493,69 @@ export default function HomePage() {
             }}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {POPULAR_SHOWS.map((show) => (
-              <MediaCard
-                key={show.id}
-                id={show.id}
-                title={show.title}
-                subtitle={show.subtitle}
-                year={show.year}
-                duration={show.duration}
-                artworkUrl={show.artworkUrl}
-                aspectRatio={show.aspectRatio}
-                badges={show.badges}
-                isInWatchlist={Boolean(watchlist[show.id])}
-                onPlay={() => handleOpenRoomModal("watch")}
-                onToggleWatchlist={() => handleToggleWatchlist(show.id, show.title)}
-              />
-            ))}
-          </div>
+          {loadingShows ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-3xl bg-surface-primary/60 border border-border-subtle animate-pulse aspect-video"
+                />
+              ))}
+            </div>
+          ) : trendingShows.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {trendingShows.map((show) => (
+                <MediaCard
+                  key={show.id}
+                  id={String(show.id)}
+                  title={show.name}
+                  subtitle={new Date(show.first_air_date || "").getFullYear().toString() || ""}
+                  artworkUrl={show.backdrop_url || show.poster_url || ""}
+                  aspectRatio="backdrop"
+                  onPlay={() => handleOpenRoomModal("watch")}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={<Tv className="w-7 h-7 text-accent-purple" />}
+              title="No shows available"
+              description="TV shows from our catalog will appear here."
+              action={{
+                label: "Browse Shows",
+                onClick: () => router.push("/shows"),
+              }}
+            />
+          )}
         </section>
 
-        {/* 8. Recently Played (Real Empty State when user has no audio history) */}
-        <section aria-label="Recently Played" className="space-y-4">
+        {/* 6. Music section — link to music page */}
+        <section aria-label="Music" className="space-y-4">
           <SectionHeader
-            title="Recently Played"
-            subtitle="Your recent audio listening history"
-            icon={<Clock className="w-5 h-5" />}
+            title="Music"
+            subtitle="High-fidelity audio for synchronized listening rooms"
+            icon={<Music className="w-5 h-5" />}
+            action={{
+              label: "Browse Music",
+              href: "/music",
+            }}
           />
           <EmptyState
             icon={<Music className="w-7 h-7 text-accent-pink" />}
-            title="No music played yet"
-            description="Albums and tracks you listen to in group rooms or solo sessions will appear here."
+            title="Discover music"
+            description="Browse albums and tracks, or upload your own music to listen together with friends."
             action={{
-              label: "Explore Music Recommendations",
-              onClick: () => {
-                const el = document.getElementById("music-recommendations");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              },
+              label: "Browse Music",
+              onClick: () => router.push("/music"),
+            }}
+            secondaryAction={{
+              label: "Create Playlist",
+              onClick: () => router.push("/playlists"),
             }}
           />
         </section>
 
-        {/* 9. Music Recommendations Section */}
-        <section id="music-recommendations" aria-label="Music Recommendations" className="space-y-4">
-          <SectionHeader
-            title="Music Recommendations"
-            subtitle="High-fidelity audio curated for synchronized listening rooms"
-            icon={<Music className="w-5 h-5" />}
-            action={{
-              label: "See All",
-              onClick: () => info("Opening Apple Music catalog"),
-            }}
-          />
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-            {MUSIC_RECOMMENDATIONS.map((album) => (
-              <MediaCard
-                key={album.id}
-                id={album.id}
-                title={album.title}
-                subtitle={album.subtitle}
-                year={album.year}
-                duration={album.duration}
-                artworkUrl={album.artworkUrl}
-                aspectRatio={album.aspectRatio}
-                badges={album.badges}
-                type="music"
-                isInWatchlist={Boolean(watchlist[album.id])}
-                onPlay={() => handleOpenRoomModal("listen")}
-                onToggleWatchlist={() => handleToggleWatchlist(album.id, album.title)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* 10. Upcoming Shared Rooms Section */}
+        {/* 7. Upcoming Shared Rooms Section */}
         <section aria-label="Upcoming Rooms" className="space-y-4">
           <SectionHeader
             title="Upcoming Rooms"
@@ -772,8 +571,12 @@ export default function HomePage() {
             title="No scheduled shared sessions"
             description="You don't have any upcoming watch or listen rooms scheduled. Start a session and invite your friends!"
             action={{
-              label: "Create Room",
+              label: "Start Watching Together",
               onClick: () => handleOpenRoomModal("watch"),
+            }}
+            secondaryAction={{
+              label: "Start Listening Together",
+              onClick: () => handleOpenRoomModal("listen"),
             }}
           />
         </section>
@@ -803,7 +606,7 @@ export default function HomePage() {
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
               className="w-full px-4 py-2.5 rounded-2xl bg-surface-primary border border-border-glass text-body-md text-content-primary focus:border-accent-blue outline-none transition"
-              placeholder="e.g. Dune Premiere Night"
+              placeholder="e.g. Friday Night Premiere"
             />
           </div>
 
