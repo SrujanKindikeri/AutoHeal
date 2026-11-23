@@ -25,4 +25,5 @@ export * from "./SectionHeader";
 export * from "./PageContainer";
 export * from "./PageHeader";
 export * from "./GlassPanel";
+export * from "./RoomCard";
 export * from "./NavigationItem";

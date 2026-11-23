@@ -107,101 +107,32 @@ services:
     networks:
       - movieflow_net
 
-  prometheus:
-    image: prom/prometheus:v3.4.0
-    container_name: movieflow_prometheus
+  autoheal:
+    build:
+      context: ./autoheal
+      dockerfile: Dockerfile
+    image: movieflow-autoheal:latest
+    container_name: movieflow_autoheal
     restart: unless-stopped
     ports:
-      - "9090:9090"
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=15d"
-      - "--web.enable-lifecycle"
+      - "5001:5001"
+    environment:
+      DRY_RUN: "True"
+      EXECUTION_MODE: "DRY_RUN"
+      DATABASE_PATH: "/data/autoheal.db"
+      PORT: "5001"
+      LOG_LEVEL: "INFO"
+      COOLDOWN_SECONDS: "300"
+      DOCKER_NETWORK: "multiflow_movieflow_net"
     volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
+      - autoheal_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-    networks:
-      - movieflow_net
-
-  node-exporter:
-    image: prom/node-exporter:v1.8.2
-    container_name: movieflow_node_exporter
-    restart: unless-stopped
-    ports:
-      - "9100:9100"
-    command:
-      - "--path.procfs=/host/proc"
-      - "--path.sysfs=/host/sys"
-      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9100/ || exit 1"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\" || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
-    networks:
-      - movieflow_net
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
-    container_name: movieflow_cadvisor
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    command:
-      - "--housekeeping_interval=10s"
-      - "--docker_only=true"
-      - "--disable_metrics=disk,tcp,udp,percpu,sched,process"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /sys:/sys:ro
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-    networks:
-      - movieflow_net
-
-  grafana:
-    image: grafana/grafana:11.1.0
-    container_name: movieflow_grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
-      GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/movieflow_infrastructure.json
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    depends_on:
-      prometheus:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
     networks:
       - movieflow_net
 
@@ -210,8 +141,7 @@ volumes:
   redis_data:
   static_volume:
   media_volume:
-  prometheus_data:
-  grafana_data:
+  autoheal_data:
 
 networks:
   movieflow_net:

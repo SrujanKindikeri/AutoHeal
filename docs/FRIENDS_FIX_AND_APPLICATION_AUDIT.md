@@ -37,8 +37,8 @@ on the list payload, so `map` threw a `TypeError` — the uncaught client-side e
 | `backend/accounts/serializers.py` | `PublicUserSerializer` hardened to tolerate users with no `Profile` row (switched `source='profile.*'` fields to `SerializerMethodField` with `getattr` guards). Prevents an `AttributeError` that would crash user search / friend serialization for any user lacking a profile. |
 | `frontend/src/app/page.tsx` | Removed all hardcoded demo catalog data and the fake "Launch Room" success toast; replaced with real backend calls + loading skeletons + empty states with actions; removed unused imports. |
 | `frontend/src/lib/roomApi.ts` (new) | Real `createRoom`, `inviteToRoom`, `getMyRooms` over the existing rooms REST API. |
-| `docker-compose.yml` | Kept prior infrastructure work: backend/frontend healthchecks and a monitoring stack (Prometheus / Grafana / node-exporter / cAdvisor). Already live and healthy. |
-| `monitoring/` (new, tracked) | Prometheus + Grafana provisioning files mounted by `docker-compose.yml`. |
+| `docker-compose.yml` | App-only stack: backend/frontend healthchecks retained. The monitoring stack was later moved to an opt-in separate compose file (see §11). |
+| `monitoring/` (tracked) | Prometheus + Grafana provisioning files; now mounted by `docker-compose.monitoring.yml` (opt-in, see §11). |
 | `docs/FRIENDS_FIX_AND_APPLICATION_AUDIT.md` (this file) | Phase 10 report. |
 
 Prior untracked docs (`docs/MONITORING_SETUP.md`, `docs/DOCKER_DEPLOYMENT.md`) and
@@ -178,11 +178,13 @@ removed. No temporary demo files were found that required deletion.
 
 ## 9. Features that failed / are still incomplete
 
-- **Watch Together / Listen Together / Rooms in-room experience** — the backend rooms API
-  and WebSocket sync exist, but the frontend has no in-room synchronized player UI. The
-  `/watch-together`, `/listen-together`, and `/rooms` route areas are not fully built out.
-  The Home "Launch Room" modal now creates a real room and invites friends, but there is not
-  yet a room screen to enter and sync playback in. This is the largest remaining gap.
+- **Watch Together / Listen Together / Rooms in-room experience** — substantially addressed
+  in the review-fix round (§11): the Home modal now binds a room to a real personal upload
+  (`content_id` = the media id, not the room name), the host is routed into `/rooms/[roomId]`
+  after creation, and that page plays the bound upload (authenticated fetch → Blob URL) and
+  lists participants. The `/watch-together` and `/listen-together` hubs now list the user's
+  real rooms. **Still pending:** real-time WebSocket playback sync across participants (the
+  player is per-viewer) and TMDB-catalog content playback in-room.
 - **TMDB catalog egress** — in this runtime environment the backend cannot reach
   `api.themoviedb.org` (SSL/`SSLError`), so trending endpoints return HTTP 502 and the Home
   shows empty states. This is an environment/network limitation, not an application bug; the
@@ -215,3 +217,46 @@ removed. No temporary demo files were found that required deletion.
 - `docker compose exec backend python manage.py test friendships accounts` → 44 tests, OK.
 - `npm run lint` → 0 errors. `npm run build` → 0 errors.
 - Frontend image rebuilt and recreated; backend restarted to apply the serializer fix.
+
+---
+
+## 11. Review-fix round — rooms bound to real media, host routed in, monitoring split
+
+This round addressed the three findings from the loop review (`review.json` verdict `CHANGES_REQUESTED`).
+
+### Finding 1 — Room content not bound to real media
+- `roomApi.createRoom` previously sent `content_id = <room name>` and `content_title = <room name>`, so the backend could never match `room__content_id` to a real media id and the room could not play anything.
+- The Home "Create Room" modal now requires the host to **select a real personal upload** (movie for Watch rooms, track for Listen rooms) from `/api/v1/library/uploads/movies|tracks/`. The room is created with `content_id = <upload UUID>`, `content_type = personal_movie|personal_track`, and `playback_provider = personal`. This matches the streaming authorization in `backend/library/views.py` (`UploadedMovieStreamView` / `UploadedTrackStreamView`), which grants access to joined participants of a room whose `content_id` equals the real media id.
+- If the user has no uploads, the modal shows an empty state linking to the upload pages — no fake content.
+
+### Finding 2 — No entry point to created rooms; `getMyRooms` was dead code
+- After `createRoom` + invites, the host is now routed into the new room page (`router.push('/rooms/[roomId]')`) instead of being left on Home with only a toast.
+- New `frontend/src/app/rooms/[roomId]/page.tsx`: loads the room (`GET /api/v1/rooms/<id>/`), ensures the viewer is joined (`POST .../join/`), and plays the bound personal upload via an authenticated fetch → Blob URL (the `<video>`/`<audio>` element cannot send the Bearer header). Lists participants (refreshed periodically) and offers Leave.
+- The Home "Upcoming Rooms" section is now driven by `getMyRooms` (`GET /api/v1/rooms/`) and renders real rooms via the new shared `RoomCard`; empty state only when there are genuinely no rooms.
+- `/watch-together` and `/listen-together` were rewritten to list the user's real rooms by type (replacing the "coming soon" demo chat/reactions and fixing the `/listen-together` 404).
+
+### Finding 3 — Out-of-scope monitoring stack with weak default credentials
+- The monitoring stack (Prometheus / Grafana / node-exporter / cAdvisor) was moved out of `docker-compose.yml` into a **separate** `docker-compose.monitoring.yml`, so a plain `docker compose up` runs only the application (4 containers) and the monitoring containers are never always-on and expose no host ports by default.
+- Grafana **no longer ships a default `admin` password**: `GRAFANA_ADMIN_PASSWORD` is required (`${GRAFANA_ADMIN_PASSWORD:?...}`); the monitoring stack fails closed if unset.
+- The uncommitted alertmanager / blackbox-exporter expansion (added by the prior interrupted run) and its orphaned config/doc files were discarded: `monitoring/alertmanager/`, `monitoring/blackbox/`, `monitoring/prometheus/alert_rules.yml`, and `docs/ALERTING_SETUP.md`.
+- Backend/frontend healthchecks (in scope) were retained.
+
+### Files changed this round
+| File | Change |
+| --- | --- |
+| `docker-compose.yml` | Monitoring services removed; app-only (healthchecks retained). |
+| `docker-compose.monitoring.yml` (new) | Opt-in monitoring stack; `GRAFANA_ADMIN_PASSWORD` required. |
+| `docs/MONITORING_SETUP.md` | Updated start commands + credentials to match the opt-in, no-default-password setup. |
+| `frontend/src/lib/roomApi.ts` | `createRoom` binds real `content_id`; added `getRoom`, `joinRoom`, `leaveRoom`, `personalStreamUrl`; richer `Room` type. |
+| `frontend/src/lib/libraryApi.ts` | Added `getUploadedMovies` / `getUploadedTracks` + types. |
+| `frontend/src/components/ui/RoomCard.tsx` (new) | Shared room card; exported from the UI barrel. |
+| `frontend/src/components/rooms/RoomsHub.tsx` (new) | Shared Watch/Listen hub listing the user's real rooms. |
+| `frontend/src/app/page.tsx` | Room modal now selects real media; host routed into the room; "Upcoming Rooms" driven by `getMyRooms`. |
+| `frontend/src/app/rooms/[roomId]/page.tsx` (new) | Room player page (load, join, play personal upload, participants, leave). |
+| `frontend/src/app/watch-together/page.tsx` | Replaced "coming soon" demo with the real `RoomsHub`. |
+| `frontend/src/app/listen-together/page.tsx` (new) | Real `RoomsHub` for music rooms (was a 404). |
+
+### Verification this round
+- `npm run build` (frontend) → 0 errors; new routes compiled (`/rooms/[roomId]`, `/listen-together`, `/watch-together`).
+- `docker exec movieflow_backend python manage.py check` → 0 issues.
+- `docker exec movieflow_backend python manage.py test rooms library friendships accounts` → 87 tests, OK.

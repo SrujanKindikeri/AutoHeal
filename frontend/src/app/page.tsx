@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { getFriends, getIncomingRequests, acceptFriendRequest, rejectFriendRequest } from "@/lib/socialApi";
 import { getTrendingMovies, getTrendingTV } from "@/lib/entertainmentApi";
-import { createRoom, inviteToRoom } from "@/lib/roomApi";
+import { createRoom, inviteToRoom, getMyRooms } from "@/lib/roomApi";
+import type { Room } from "@/lib/roomApi";
+import { getUploadedMovies, getUploadedTracks } from "@/lib/libraryApi";
+import type { UploadedMovie, UploadedTrack } from "@/lib/libraryApi";
 import { Friendship, FriendRequest } from "@/types/social";
 import { TMDBMovie, TMDBTVShow } from "@/types/entertainment";
 import { AppShell } from "@/components/navigation/AppShell";
@@ -19,6 +22,7 @@ import {
   Badge,
   Avatar,
   Modal,
+  RoomCard,
   useToast,
 } from "@/components/ui";
 import {
@@ -57,6 +61,21 @@ export default function HomePage() {
   const [roomType, setRoomType] = useState<"watch" | "listen">("watch");
   const [roomName, setRoomName] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+
+  // Real media to bind the room to (the user's personal uploads). The room's
+  // content_id MUST be the real media id, not the room name, so the backend can
+  // authorize playback for room participants.
+  const [uploadedMovies, setUploadedMovies] = useState<UploadedMovie[]>([]);
+  const [uploadedTracks, setUploadedTracks] = useState<UploadedTrack[]>([]);
+  const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<
+    | { id: string; title: string; artwork: string | null; kind: "movie" | "track" }
+    | null
+  >(null);
+
+  // The user's real rooms — drives the "Upcoming Rooms" section (getMyRooms).
+  const [myRooms, setMyRooms] = useState<Room[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
 
   // Dynamic time-of-day greeting
   const [greeting, setGreeting] = useState("Welcome");
@@ -99,6 +118,29 @@ export default function HomePage() {
       .finally(() => setLoadingShows(false));
   }, []);
 
+  // Fetch the user's personal uploads (to bind real media to rooms) and the
+  // rooms they belong to (drives "Upcoming Rooms"). Both degrade to empty on
+  // failure so the page never crashes on a failed social/library fetch.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    setLoadingLibrary(true);
+    Promise.all([
+      getUploadedMovies().then((r) => r.movies).catch(() => []),
+      getUploadedTracks().then((r) => r.tracks).catch(() => []),
+    ])
+      .then(([m, t]) => {
+        setUploadedMovies(m);
+        setUploadedTracks(t);
+      })
+      .finally(() => setLoadingLibrary(false));
+
+    setLoadingRooms(true);
+    getMyRooms()
+      .then((r) => setMyRooms(r.rooms))
+      .catch(() => setMyRooms([]))
+      .finally(() => setLoadingRooms(false));
+  }, [isAuthenticated]);
+
   const handleAcceptRequest = async (requestId: string, senderName: string) => {
     try {
       await acceptFriendRequest(requestId);
@@ -124,18 +166,30 @@ export default function HomePage() {
   const handleOpenRoomModal = (type: "watch" | "listen") => {
     setRoomType(type);
     setRoomName(type === "watch" ? "Friday Night Premiere" : "Late Night Listening Lounge");
+    setSelectedContent(null);
     setRoomModalOpen(true);
   };
 
-  // Create a real Watch/Listen room via the backend rooms API and invite the
-  // selected friends. Replaces the previous placeholder success toast with a
-  // real backend action (Phase 2 items 11-12 + Phase 6 "no fake success").
+  // Create a real Watch/Listen room bound to the selected personal upload, invite
+  // the selected friends, then route the host straight into the room. Replaces
+  // the previous flow that set content_id to the room name (so the room could
+  // never play anything) and only showed a success toast (so the host could never
+  // reach the room).
   const handleCreateRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedContent) {
+      toastError("Select a movie or track for the room to play.");
+      return;
+    }
     try {
       const room = await createRoom({
         name: roomName,
         roomType: roomType === "watch" ? "movie" : "music",
+        contentId: selectedContent.id,
+        contentType: roomType === "watch" ? "personal_movie" : "personal_track",
+        contentTitle: selectedContent.title,
+        contentArtworkUrl: selectedContent.artwork || "",
+        playbackProvider: "personal",
       });
       let invited = 0;
       for (const friendId of selectedFriends) {
@@ -148,11 +202,10 @@ export default function HomePage() {
       }
       setRoomModalOpen(false);
       setSelectedFriends([]);
-      success(
-        `Created ${roomType === "watch" ? "Watch Room" : "Listening Room"} "${room.name}"${
-          invited > 0 ? ` and invited ${invited} friend(s)` : ""
-        }!`
-      );
+      setSelectedContent(null);
+      // Route the host into the room so the created room is reachable, not just
+      // a toast that leaves them on Home.
+      router.push(`/rooms/${room.id}`);
     } catch (err: unknown) {
       toastError(err instanceof Error ? err.message : "Failed to create room");
     }
@@ -555,30 +608,51 @@ export default function HomePage() {
           />
         </section>
 
-        {/* 7. Upcoming Shared Rooms Section */}
+        {/* 7. Upcoming Shared Rooms — driven by the user's real rooms (getMyRooms) */}
         <section aria-label="Upcoming Rooms" className="space-y-4">
           <SectionHeader
             title="Upcoming Rooms"
-            subtitle="Synchronized watch and listen parties scheduled with friends"
+            subtitle="Synchronized watch and listen parties you're hosting or in"
             icon={<Radio className="w-5 h-5" />}
             action={{
               label: "Create Room",
               onClick: () => handleOpenRoomModal("watch"),
             }}
           />
-          <EmptyState
-            icon={<Radio className="w-7 h-7 text-accent-purple" />}
-            title="No scheduled shared sessions"
-            description="You don't have any upcoming watch or listen rooms scheduled. Start a session and invite your friends!"
-            action={{
-              label: "Start Watching Together",
-              onClick: () => handleOpenRoomModal("watch"),
-            }}
-            secondaryAction={{
-              label: "Start Listening Together",
-              onClick: () => handleOpenRoomModal("listen"),
-            }}
-          />
+          {loadingRooms ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-3xl bg-surface-primary/60 border border-border-subtle animate-pulse h-32"
+                />
+              ))}
+            </div>
+          ) : myRooms.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {myRooms.map((room) => (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  onOpen={(id) => router.push(`/rooms/${id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={<Radio className="w-7 h-7 text-accent-purple" />}
+              title="No shared sessions yet"
+              description="Start a Watch or Listen Together room and invite your friends to join in sync."
+              action={{
+                label: "Start Watching Together",
+                onClick: () => handleOpenRoomModal("watch"),
+              }}
+              secondaryAction={{
+                label: "Start Listening Together",
+                onClick: () => handleOpenRoomModal("listen"),
+              }}
+            />
+          )}
         </section>
       </div>
 
@@ -642,6 +716,118 @@ export default function HomePage() {
                 <span>Listening Room</span>
               </button>
             </div>
+          </div>
+
+          {/* Select the real media the room will play */}
+          <div className="space-y-1.5 text-left">
+            <label className="text-body-sm font-semibold text-content-secondary">
+              {roomType === "watch" ? "Select a Movie to Watch" : "Select a Track to Play"}
+            </label>
+            {loadingLibrary ? (
+              <div className="py-3 text-caption text-content-muted">Loading your library…</div>
+            ) : roomType === "watch" ? (
+              uploadedMovies.length > 0 ? (
+                <div className="max-h-44 overflow-y-auto space-y-1.5 no-scrollbar p-1">
+                  {uploadedMovies.map((m) => {
+                    const isSelected = selectedContent?.id === m.id;
+                    return (
+                      <button
+                        type="button"
+                        key={m.id}
+                        onClick={() =>
+                          setSelectedContent({
+                            id: m.id,
+                            title: m.title,
+                            artwork: m.poster_url,
+                            kind: "movie",
+                          })
+                        }
+                        className={`w-full flex items-center gap-3 p-2.5 rounded-xl border text-left transition select-none ${
+                          isSelected
+                            ? "bg-accent-blue/15 border-accent-blue/30"
+                            : "bg-surface-primary border-border-subtle hover:bg-black/[0.04]"
+                        }`}
+                      >
+                        <div className="w-10 h-12 rounded-lg overflow-hidden bg-surface-elevated border border-border-subtle shrink-0 flex items-center justify-center">
+                          {m.poster_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.poster_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <Film className="w-4 h-4 text-content-muted" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-body-sm font-semibold text-content-primary truncate">
+                            {m.title}
+                          </div>
+                          {m.release_year ? (
+                            <div className="text-caption text-content-muted">{m.release_year}</div>
+                          ) : null}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-3 text-center rounded-xl bg-surface-primary border border-border-subtle text-caption text-content-muted">
+                  You have no uploaded movies.{" "}
+                  <Link href="/library/movies" className="text-accent-blue font-semibold hover:underline">
+                    Upload a movie
+                  </Link>{" "}
+                  to start a Watch Together room.
+                </div>
+              )
+            ) : uploadedTracks.length > 0 ? (
+              <div className="max-h-44 overflow-y-auto space-y-1.5 no-scrollbar p-1">
+                {uploadedTracks.map((t) => {
+                  const isSelected = selectedContent?.id === t.id;
+                  return (
+                    <button
+                      type="button"
+                      key={t.id}
+                      onClick={() =>
+                        setSelectedContent({
+                          id: t.id,
+                          title: t.track_name,
+                          artwork: t.cover_url,
+                          kind: "track",
+                        })
+                      }
+                      className={`w-full flex items-center gap-3 p-2.5 rounded-xl border text-left transition select-none ${
+                        isSelected
+                          ? "bg-accent-pink/15 border-accent-pink/30"
+                          : "bg-surface-primary border-border-subtle hover:bg-black/[0.04]"
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-elevated border border-border-subtle shrink-0 flex items-center justify-center">
+                        {t.cover_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={t.cover_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <Music className="w-4 h-4 text-content-muted" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-body-sm font-semibold text-content-primary truncate">
+                          {t.track_name}
+                        </div>
+                        {t.artist ? (
+                          <div className="text-caption text-content-muted truncate">{t.artist}</div>
+                        ) : null}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-3 text-center rounded-xl bg-surface-primary border border-border-subtle text-caption text-content-muted">
+                You have no uploaded tracks.{" "}
+                <Link href="/library/music" className="text-accent-pink font-semibold hover:underline">
+                  Upload music
+                </Link>{" "}
+                to start a Listen Together room.
+              </div>
+            )}
           </div>
 
           {/* Invite Real Friends */}
@@ -710,7 +896,7 @@ export default function HomePage() {
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="primary" disabled={!selectedContent}>
               Launch Room
             </Button>
           </div>

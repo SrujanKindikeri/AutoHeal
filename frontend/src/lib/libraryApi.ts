@@ -273,3 +273,41 @@ export function unfollowArtist(artistId: string): Promise<void> {
     method: "DELETE",
   });
 }
+
+// ── Personal media uploads (used to bind real content to Watch/Listen rooms) ──
+
+export interface UploadedMovie {
+  id: string;
+  title: string;
+  description: string;
+  genre: string;
+  release_year: number | null;
+  file_size: number;
+  processing_status: string;
+  poster_url: string | null;
+  stream_url: string;
+  created_at: string;
+}
+
+export interface UploadedTrack {
+  id: string;
+  track_name: string;
+  artist: string;
+  album: string;
+  genre: string;
+  file_size: number;
+  duration_seconds: number | null;
+  cover_url: string | null;
+  stream_url: string;
+  created_at: string;
+}
+
+// GET /api/v1/library/uploads/movies/ — the authenticated user's uploaded movies.
+export function getUploadedMovies(): Promise<{ movies: UploadedMovie[] }> {
+  return apiRequest<{ movies: UploadedMovie[] }>("/api/v1/library/uploads/movies/");
+}
+
+// GET /api/v1/library/uploads/tracks/ — the authenticated user's uploaded tracks.
+export function getUploadedTracks(): Promise<{ tracks: UploadedTrack[] }> {
+  return apiRequest<{ tracks: UploadedTrack[] }>("/api/v1/library/uploads/tracks/");
+}

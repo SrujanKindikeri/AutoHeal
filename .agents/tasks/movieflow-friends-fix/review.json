@@ -1,0 +1,9 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    "Room content not bound to real media: roomApi.createRoom sets content_id and content_title to the room's name, not a real movie/track id, and library/views.py authorizes playback by matching room__content_id to the actual media id (lines ~573 and ~705), so a room created from Home can never play anything. Have the user select a movie/track (or personal upload) when creating the room and pass its real id as content_id.",
+    "No entry point to created rooms and getMyRooms is dead code: handleCreateRoomSubmit only shows a toast after createRoom and never routes the host into the room, getMyRooms is defined in roomApi.ts but never called, and the Home 'Upcoming Rooms' section is a permanent static empty state that never reflects the user's real rooms. Route the host into the room/lobby after creation and drive 'Upcoming Rooms' from getMyRooms, or remove the unused function.",
+    "Out-of-scope monitoring stack with weak default credentials: the infra commit adds Prometheus/Grafana/node-exporter/cAdvisor (4 always-on containers, host ports 9090/9100/8080/3000) that no requested phase asked for, and Grafana ships with a default admin/admin password exposed on host port 3000. Keep the healthchecks (in scope and useful), but move the monitoring stack to a separate compose profile or drop it from this change, and never ship Grafana with a default admin password."
+  ],
+  "reviewDoc": "c:\\Users\\kindi\\OneDrive\\Documents\\AutoHeal\\MultiFlow\\MultiFlow\\.agents\\tasks\\movieflow-friends-fix\\review.md"
+}
