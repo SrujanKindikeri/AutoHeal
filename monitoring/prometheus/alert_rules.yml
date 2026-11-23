@@ -1,0 +1,92 @@
+groups:
+  - name: movieflow_alerts
+    rules:
+      - alert: MonitoringTargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Prometheus scrape target is down (instance {{ $labels.instance }})"
+          description: "Target {{ $labels.instance }} of job {{ $labels.job }} has been unreachable for more than 1 minute."
+          impact: "Metrics collection for this endpoint has ceased; visibility into target state is lost."
+          suggested_investigation: "Check container status with `docker compose ps` and verify network reachability on movieflow_net."
+
+      - alert: BackendUnavailable
+        expr: probe_success{instance="http://backend:8000/api/core/health/"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: backend
+          category: availability
+        annotations:
+          summary: "MovieFlow Backend is unreachable or unhealthy"
+          description: "Blackbox probe to http://backend:8000/api/core/health/ failed for more than 30 seconds."
+          impact: "Core API, database connections, and WebSocket channel layers are unavailable to users."
+          suggested_investigation: "Check `docker compose logs backend`, verify PostgreSQL and Redis health, and check Daphne process status."
+
+      - alert: FrontendUnavailable
+        expr: probe_success{instance="http://frontend:3000/api/health"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: frontend
+          category: availability
+        annotations:
+          summary: "MovieFlow Frontend is unreachable or unhealthy"
+          description: "Blackbox probe to http://frontend:3000/api/health failed for more than 30 seconds."
+          impact: "Users cannot access the Next.js web application UI or landing page."
+          suggested_investigation: "Check `docker compose logs frontend` and ensure Next.js standalone server is running on port 3000."
+
+      - alert: HighHostCPUUsage
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)) > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: host
+          category: resource
+        annotations:
+          summary: "Host / WSL2 CPU utilization is critically high (>85%)"
+          description: "CPU utilization on instance {{ $labels.instance }} has exceeded 85% for more than 5 minutes."
+          impact: "System responsiveness degradation, increased request latency, possible request throttling."
+          suggested_investigation: "Check top CPU-consuming processes using `docker stats` or WSL top/htop."
+
+      - alert: LowHostMemory
+        expr: ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100) < 10
+        for: 5m
+        labels:
+          severity: warning
+          service: host
+          category: resource
+        annotations:
+          summary: "Host / WSL2 available memory is low (<10%)"
+          description: "Available memory on instance {{ $labels.instance }} has fallen below 10% for more than 5 minutes."
+          impact: "Risk of Linux kernel OOM-killer terminating critical containers (PostgreSQL, Daphne, Redis)."
+          suggested_investigation: "Inspect memory consumption with `docker stats` and consider increasing Docker Desktop WSL2 memory limit in .wslconfig."
+
+      - alert: ContainerHighMemoryUsage
+        expr: ((container_memory_usage_bytes{id="/"} / container_spec_memory_limit_bytes{id="/"}) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: container
+          category: resource
+        annotations:
+          summary: "Container runtime memory consumption exceeded 90% of limit"
+          description: "Root container memory usage is {{ $value | printf \"%.2f\" }}% of limit for more than 5 minutes."
+          impact: "Risk of container OOM termination or paging slowdown."
+          suggested_investigation: "Review memory consumption across containers with `docker stats`."
+
+      - alert: MonitoringStackDown
+        expr: up{job=~"prometheus|alertmanager|node-exporter|cadvisor|blackbox-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: monitoring
+          category: availability
+        annotations:
+          summary: "Core monitoring infrastructure component is down ({{ $labels.job }})"
+          description: "Monitoring service {{ $labels.job }} ({{ $labels.instance }}) is unreachable."
+          impact: "Alerting, time-series storage, or host metrics pipeline is degraded."
+          suggested_investigation: "Inspect logs for the failed monitoring service with `docker compose logs {{ $labels.job }}`."

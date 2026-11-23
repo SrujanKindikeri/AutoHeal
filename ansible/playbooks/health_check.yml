@@ -1,0 +1,71 @@
+---
+- name: "MovieFlow Infrastructure & Application Health Check"
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: "[Probe 1] Check MovieFlow Backend health endpoint"
+      ansible.builtin.uri:
+        url: "{{ health_endpoints.backend }}"
+        method: GET
+        status_code: 200
+        return_content: yes
+      register: backend_check
+      ignore_errors: true
+
+    - name: "[Probe 2] Check MovieFlow Frontend health endpoint"
+      ansible.builtin.uri:
+        url: "{{ health_endpoints.frontend }}"
+        method: GET
+        status_code: 200
+        return_content: yes
+      register: frontend_check
+      ignore_errors: true
+
+    - name: "[Probe 3] Check PostgreSQL port reachability"
+      ansible.builtin.wait_for:
+        host: "{{ health_endpoints.postgres_host }}"
+        port: "{{ health_endpoints.postgres_port }}"
+        timeout: 5
+        state: started
+      register: postgres_check
+      ignore_errors: true
+
+    - name: "[Probe 4] Check Redis port reachability"
+      ansible.builtin.wait_for:
+        host: "{{ health_endpoints.redis_host }}"
+        port: "{{ health_endpoints.redis_port }}"
+        timeout: 5
+        state: started
+      register: redis_check
+      ignore_errors: true
+
+    - name: "[Probe 5] Check Prometheus health endpoint"
+      ansible.builtin.uri:
+        url: "{{ health_endpoints.prometheus }}"
+        method: GET
+        status_code: 200
+      register: prometheus_check
+      ignore_errors: true
+
+    - name: "[Probe 6] Check Alertmanager health endpoint"
+      ansible.builtin.uri:
+        url: "{{ health_endpoints.alertmanager }}"
+        method: GET
+        status_code: 200
+      register: alertmanager_check
+      ignore_errors: true
+
+    - name: "[Summary] Construct health assessment report"
+      ansible.builtin.set_fact:
+        health_summary:
+          backend: "{{ 'HEALTHY (HTTP 200)' if (backend_check.status | default(0) == 200) else 'UNHEALTHY' }}"
+          frontend: "{{ 'HEALTHY (HTTP 200)' if (frontend_check.status | default(0) == 200) else 'UNHEALTHY' }}"
+          postgres: "{{ 'HEALTHY (Port 5432 Open)' if not postgres_check.failed else 'UNHEALTHY' }}"
+          redis: "{{ 'HEALTHY (Port 6379 Open)' if not redis_check.failed else 'UNHEALTHY' }}"
+          prometheus: "{{ 'HEALTHY (HTTP 200)' if (prometheus_check.status | default(0) == 200) else 'UNHEALTHY' }}"
+          alertmanager: "{{ 'HEALTHY (HTTP 200)' if (alertmanager_check.status | default(0) == 200) else 'UNHEALTHY' }}"
+          timestamp: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+
+    - name: "[Output] Display infrastructure health status table"
+      ansible.builtin.debug:
+        var: health_summary

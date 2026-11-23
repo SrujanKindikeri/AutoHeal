@@ -1,0 +1,8 @@
+---
+- name: "MovieFlow Recovery: Redis Service"
+  hosts: localhost
+  gather_facts: false
+  vars:
+    target_service: "redis"
+  roles:
+    - role: movieflow_recovery

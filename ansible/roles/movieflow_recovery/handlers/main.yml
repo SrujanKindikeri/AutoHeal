@@ -1,0 +1,5 @@
+---
+# Handlers for MovieFlow recovery role
+- name: Log recovery completed
+  ansible.builtin.debug:
+    msg: "Recovery handler completed for {{ target_service | default('unknown') }}"

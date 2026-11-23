@@ -1,0 +1,8 @@
+---
+- name: "MovieFlow Recovery: Frontend Service"
+  hosts: localhost
+  gather_facts: false
+  vars:
+    target_service: "frontend"
+  roles:
+    - role: movieflow_recovery
